@@ -32,7 +32,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    real X5(nrens,nrens)
    integer i,nrmin,iblkmax
-   logical lreps
+   logical :: lreps=.false.
 
 
    real, allocatable :: eig(:)
@@ -43,7 +43,6 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
 
 
 
-   lreps=.FALSE.
    if (verbose) print * ,'analysis: verbose is on'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Pseudo inversion of C=SS' +(N-1)*R

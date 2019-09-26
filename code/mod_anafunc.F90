@@ -71,6 +71,7 @@ end subroutine
 
 subroutine eigC(R,nrobs,Z,eig)
 ! Compute eigenvalue decomposition of R -> Z*eig*Z` 
+! Returns eigenvectors and eigenvalues in ascending order.
    integer, intent(in) :: nrobs
    real, intent(in)    :: R(nrobs,nrobs)
    real, intent(out) :: Z(nrobs,nrobs)
@@ -108,6 +109,10 @@ subroutine eigC(R,nrobs,Z,eig)
    RR=R
    call dsyevx('V', 'A', 'U', nrobs, RR, nrobs, ddum, ddum, idum, idum, abstol, &
             neig, eig, Z, nrobs, fwork, 8*nrobs, iwork, ifail, ierr )
+   if (ierr /= 0)  then
+      print *,'              EigC:  dsyevx ierr     = ',ierr
+      stop
+   endif
 #endif
 
 
@@ -168,22 +173,22 @@ end subroutine
 
 
 
-subroutine genX2(nrens,nrobs,idim,S,W,eig,X2)
+subroutine genX2(nrens,nrobs,nrmin,S,W,eig,X2)
 ! Generate X2= (I+eig)^{-0.5} * W^T * S
    implicit none
    integer, intent(in) :: nrens
    integer, intent(in) :: nrobs
-   integer, intent(in) :: idim ! idim=nrobs for A4 and nrmin for A5
-   real, intent(in)    :: W(nrobs,idim) !bug correction: should not affect results - mbj
+   integer, intent(in) :: nrmin ! nrmin=nrobs for A4 and nrmin for A5
+   real, intent(in)    :: W(nrobs,nrmin) !bug correction: should not affect results - mbj
    real, intent(in)    :: S(nrobs,nrens)
-   real, intent(in)    :: eig(idim)
-   real, intent(out)   :: X2(idim,nrens)
+   real, intent(in)    :: eig(nrmin)
+   real, intent(out)   :: X2(nrmin,nrens)
    integer i,j
 
-   call dgemm('t','n',idim,nrens,nrobs,1.0,W,nrobs, S,nrobs, 0.0,X2,idim)
+   call dgemm('t','n',nrmin,nrens,nrobs,1.0,W,nrobs, S,nrobs, 0.0,X2,nrmin)
 
    do j=1,nrens
-   do i=1,idim
+   do i=1,nrmin
       X2(i,j)=sqrt(eig(i))*X2(i,j)
    enddo
    enddo
@@ -227,7 +232,8 @@ subroutine meanX5(nrens,nrobs,nrmin,S,W,eig,innov,X5)
    integer, intent(in) :: nrens
    integer, intent(in) :: nrobs
    integer, intent(in) :: nrmin
-   real, intent(in)    :: W(nrmin,nrmin)
+!   real, intent(in)    :: W(nrmin,nrmin) !Bug reorted by Marco Bajo
+   real, intent(in)    :: W(nrobs,nrmin)
    real, intent(in)    :: S(nrobs,nrens)
    real, intent(in)    :: eig(nrmin)
    real, intent(in)    :: innov(nrobs)
@@ -289,11 +295,6 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,update_randrot,mode)
    if (update_randrot) then
       if (allocated(ROT)) deallocate(ROT)
       allocate(ROT(nrens,nrens))
-!!      ROT=0.0
-!!      do i=1,nrens
-!!         ROT(i,i)=1.0
-!!      enddo
-!      call randrot(ROT,nrens)  ! old non mean preserving random rotation
       call mean_preserving_rotation(ROT,nrens)
    endif
 
@@ -324,19 +325,6 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,update_randrot,mode)
    do j=1,nrmin
       X3(:,j)=X3(:,j)*isigma(j)
    enddo
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Multiply  X3* V' = (V*sqrt(I-sigma*sigma) * V' to ensure symmetric sqrt and 
-! mean preserving rotation.   Sakov paper eq 13
-   call dgemm('n','n',nrens,nrens,nrens,1.0,X3,nrens,VT,nrens,0.0,X33,nrens)
-! Check mean preservation X33*1_N = a* 1_N (Sakov paper eq 15)
-!   do i=1,nrens
-!      print *,'sum(X33)= ',i,sum(X33(i,:))
-!   enddo
-   
-!!X33=X3
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !   print '(a)','X5sqrt: sig: '
 !   print '(5g11.3)',sig(1:min(nrmin,nrens))
@@ -538,7 +526,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
       endif
    enddo
 
-   write(*,'(a48,i5,g13.5)') 'analysis svdS: dominant sing. values and share ',nrsigma,sigsum1/sigsum
+   write(*,'(a,i5,g13.5)') '      analysis svdS: dominant sing. values and share ',nrsigma,sigsum1/sigsum
 !   write(*,'(5g11.3)')sig0
 
    do i=1,nrsigma
@@ -547,5 +535,242 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
 
 end subroutine
 
+subroutine inflationTEST(X5,nrens)
+   use m_multa
+   use m_random
+   implicit none
+   integer, intent(in) :: nrens
+   real, intent(inout) :: X5(nrens,nrens)
+
+   integer, parameter :: ndim=100
+   integer, parameter :: nrnn=250
+   real aveverens
+   real stdverens
+   real, save :: verens(ndim,nrnn)
+   real :: TMP(ndim,nrens)
+   real :: verX(nrens,nrens)
+   real :: XX(nrens,nrens)
+   real :: std(ndim)
+   integer i,j
+   logical, save :: lfirst=.true.
+   integer, save :: it=0
+
+
+
+   if (nrnn /= nrens) then
+      print *,'nrens not equal to nrnn',nrens,nrnn
+      stop
+   endif
+
+   if (lfirst) then
+      lfirst=.false.
+      call random(verens,ndim*nrens)
+
+
+! subtract mean to get ensemble of mean=0.0
+      do i=1,ndim
+         aveverens=sum(verens(i,1:nrens))/real(nrens)
+         do j=1,nrens
+            verens(i,j)=verens(i,j)-aveverens
+         enddo
+      enddo
+
+! compute std dev and scale ensemble so that it has variance=1.0
+      do i=1,ndim
+         stdverens=0.0
+         do j=1,nrens
+            stdverens=stdverens+verens(i,j)**2
+         enddo
+         stdverens=sqrt(stdverens/real(nrens))
+         do j=1,nrens
+            verens(i,j)=verens(i,j)/stdverens
+         enddo
+      enddo
+
+      open(10,file='stddev.dat')
+         std(:)=0.0
+         do j=1,nrens
+            do i=1,ndim
+               std(i)=std(i)+verens(i,j)**2
+            enddo
+         enddo
+         do i=1,ndim
+            std(i)=sqrt(std(i)/real(nrens))
+         enddo
+         stdverens=sum(std(1:ndim))/real(ndim)
+         write(10,'(i5,g13.5)') it,stdverens
+      close(10)
+   endif
+
+   it=it+1
+
+   TMP=verens
+   call multa(verens, X5, ndim, nrens, ndim)
+   
+! subtract mean from verens
+   do i=1,ndim
+      aveverens=sum(verens(i,1:nrens))/real(nrens)
+      do j=1,nrens
+         verens(i,j)=verens(i,j)-aveverens
+      enddo
+   enddo
+
+! compute average variance over all ndim states 
+   std(:)=0.0
+   do j=1,nrens
+      do i=1,ndim
+         std(i)=std(i)+verens(i,j)**2
+      enddo
+   enddo
+   do i=1,ndim
+      std(i)=sqrt(std(i)/real(nrens))
+   enddo
+   stdverens=sum(std(1:ndim))/real(ndim)
+
+
+! Compute correction to ensemble perturbations
+   verX=-1.0/real(nrens)
+   do j=1,nrens
+      verX(j,j)=verX(j,j)+1.0
+   enddo
+   do j=1,nrens
+   do i=1,nrens
+      verX(i,j)=verX(i,j)/stdverens
+   enddo
+   enddo
+   do j=1,nrens
+   do i=1,nrens
+      verX(i,j)=verX(i,j)+1.0/real(nrens)
+   enddo
+   enddo
+
+   call dgemm('n','n',nrens,nrens,nrens,1.0,X5,nrens,verX,nrens,0.0,XX,nrens)
+   print *,'      analysis: inflation factor= ',1.0/stdverens
+
+   open(10,file='stddev.dat',position='append')
+      write(10,'(i5,g13.5)') it,stdverens
+   close(10)
+   return
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Updating verens with inflated X5 (just for testing)
+   X5=XX
+   verens=TMP
+   call multa(verens, X5, ndim, nrens, ndim)
+
+! subtract mean from verens
+   do i=1,ndim
+      aveverens=sum(verens(i,1:nrens))/real(nrens)
+      do j=1,nrens
+         verens(i,j)=verens(i,j)-aveverens
+      enddo
+   enddo
+
+! compute average variance over all ndim states 
+   std(:)=0.0
+   do j=1,nrens
+      do i=1,ndim
+         std(i)=std(i)+verens(i,j)**2
+      enddo
+   enddo
+   do i=1,ndim
+      std(i)=sqrt(std(i)/real(nrens))
+   enddo
+   stdverens=sum(std(1:ndim))/real(ndim)
+
+
+   open(10,file='stddev.dat',position='append')
+      write(10,'(i5,g13.5)') it,stdverens
+   close(10)
+
+
+end subroutine
+
+
+
+subroutine inflation(X5,nrens)
+   use m_multa
+   use m_random
+   implicit none
+   integer, intent(in) :: nrens
+   real, intent(inout) :: X5(nrens,nrens)
+
+   integer, parameter :: ndim=100
+   real aveverens
+   real stdverens
+   real :: verens(ndim,nrens)
+   real :: verX(nrens,nrens)
+   real :: XX(nrens,nrens)
+   real :: std(ndim)
+   integer i,j
+
+   call random(verens,ndim*nrens)
+
+
+! subtract mean to get ensemble of mean=0.0
+   do i=1,ndim
+      aveverens=sum(verens(i,1:nrens))/real(nrens)
+      do j=1,nrens
+         verens(i,j)=verens(i,j)-aveverens
+      enddo
+   enddo
+
+! compute std dev and scale ensemble so that it has variance=1.0
+   do i=1,ndim
+      stdverens=0.0
+      do j=1,nrens
+         stdverens=stdverens+verens(i,j)**2
+      enddo
+      stdverens=sqrt(stdverens/real(nrens))
+      do j=1,nrens
+         verens(i,j)=verens(i,j)/stdverens
+      enddo
+   enddo
+
+   call multa(verens, X5, ndim, nrens, ndim)
+   
+! subtract mean from verens
+   do i=1,ndim
+      aveverens=sum(verens(i,1:nrens))/real(nrens)
+      do j=1,nrens
+         verens(i,j)=verens(i,j)-aveverens
+      enddo
+   enddo
+
+! compute average variance over all ndim states 
+   std(:)=0.0
+   do j=1,nrens
+      do i=1,ndim
+         std(i)=std(i)+verens(i,j)**2
+      enddo
+   enddo
+   do i=1,ndim
+      std(i)=sqrt(std(i)/real(nrens))
+   enddo
+   stdverens=sum(std(1:ndim))/real(ndim)
+
+! Compute correction to ensemble perturbations
+   verX=-1.0/real(nrens)
+   do j=1,nrens
+      verX(j,j)=verX(j,j)+1.0
+   enddo
+   do j=1,nrens
+   do i=1,nrens
+      verX(i,j)=verX(i,j)/stdverens
+   enddo
+   enddo
+   do j=1,nrens
+   do i=1,nrens
+      verX(i,j)=verX(i,j)+1.0/real(nrens)
+   enddo
+   enddo
+
+   call dgemm('n','n',nrens,nrens,nrens,1.0,X5,nrens,verX,nrens,0.0,XX,nrens)
+   X5=XX
+
+   print *,'      analysis: inflation factor= ',1.0/stdverens
+
+end subroutine
 
 end module
