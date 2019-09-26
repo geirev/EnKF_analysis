@@ -174,7 +174,7 @@ subroutine genX2(nrens,nrobs,idim,S,W,eig,X2)
    integer, intent(in) :: nrens
    integer, intent(in) :: nrobs
    integer, intent(in) :: idim ! idim=nrobs for A4 and nrmin for A5
-   real, intent(in)    :: W(idim,nrens)
+   real, intent(in)    :: W(nrobs,idim) !bug correction: should not affect results - mbj
    real, intent(in)    :: S(nrobs,nrens)
    real, intent(in)    :: eig(idim)
    real, intent(out)   :: X2(idim,nrens)
@@ -341,7 +341,11 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,update_randrot,mode)
 !   print '(a)','X5sqrt: sig: '
 !   print '(5g11.3)',sig(1:min(nrmin,nrens))
 
-   call dgemm('n','n',nrens,nrens,nrens,1.0,X33,nrens,ROT,nrens,0.0,X4,nrens)
+   if (update_randrot) then
+      call dgemm('n','n',nrens,nrens,nrens,1.0,X33,nrens,ROT,nrens,0.0,X4,nrens)
+   else
+      X4 = X33
+   end if
 
    IenN=-1.0/real(nrens)
    do i=1,nrens
@@ -534,7 +538,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
       endif
    enddo
 
-   write(*,'(a,i5,g13.5)') '      analysis svdS: dominant sing. values and share ',nrsigma,sigsum1/sigsum
+   write(*,'(a48,i5,g13.5)') 'analysis svdS: dominant sing. values and share ',nrsigma,sigsum1/sigsum
 !   write(*,'(5g11.3)')sig0
 
    do i=1,nrsigma
