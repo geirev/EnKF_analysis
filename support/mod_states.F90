@@ -1,5 +1,6 @@
 module mod_states
 ! Modelstate definition for HYCOM
+   use, intrinsic :: iso_fortran_env
    use mod_dimensions
    real, parameter ::  onem=9806.
 ! standard model state
@@ -17,14 +18,14 @@ module mod_states
 
 ! single precision model state (used for read and write to files)
    type states4
-      real*4 u(nx,ny,nz)
-      real*4 v(nx,ny,nz)
-      real*4 d(nx,ny,nz)
-      real*4 t(nx,ny,nz)
-      real*4 s(nx,ny,nz)
-      real*4 ub(nx,ny)
-      real*4 vb(nx,ny)
-      real*4 pb(nx,ny)
+      real(kind=REAL32) u(nx,ny,nz)
+      real(kind=REAL32) v(nx,ny,nz)
+      real(kind=REAL32) d(nx,ny,nz)
+      real(kind=REAL32) t(nx,ny,nz)
+      real(kind=REAL32) s(nx,ny,nz)
+      real(kind=REAL32) ub(nx,ny)
+      real(kind=REAL32) vb(nx,ny)
+      real(kind=REAL32) pb(nx,ny)
    end type states4
 
 ! model state at one grid point (used in local analysis)

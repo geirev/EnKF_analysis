@@ -1,23 +1,32 @@
-subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncation,mode,update_randrot)
+subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncation, mode, &
+                    lrandrot,lupdate_randrot,istep,xpath,lsakov,linflate, ladapinf, infmult)
 ! Computes the analysed ensemble for A using the EnKF or square root schemes.
 
    use mod_anafunc
    use m_multa
+   use m_ensmean
+   use m_ensvar
    implicit none
+   
+   integer,  intent(in)          :: istep
+   character(Len=*),  Intent(in) :: xpath
+
+
    integer, intent(in) :: ndim             ! dimension of model state
    integer, intent(in) :: nrens            ! number of ensemble members
    integer, intent(in) :: nrobs            ! number of observations
+
    
    real, intent(inout) :: A(ndim,nrens)    ! ensemble matrix
    real, intent(in)    :: R(nrobs,nrobs)   ! matrix holding R (only used if mode=?1 or ?2)
-   real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurement innovations D'=D-HA 
+   real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurments innovation d+E-HA = d-H*mean(A)+E-S
    real, intent(in)    :: E(nrobs,nrens)   ! matrix holding perturbations (only used if mode=?3)
    real, intent(in)    :: S(nrobs,nrens)   ! matrix holding HA` 
    real, intent(in)    :: innov(nrobs)     ! vector holding d-H*mean(A)
 
    logical, intent(in) :: verbose          ! Printing some diagnostic output
 
-   real, intent(in)    :: truncation       ! The ratio of variaince retained in pseudo inversion (0.99)
+   real, intent(in)    :: truncation       ! The ratio of variance retained in pseudo inversion (0.99)
 
    integer, intent(in) :: mode             ! first integer means (EnKF=1, SQRT=2)
                                            ! Second integer is pseudo inversion
@@ -25,15 +34,23 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
                                            !  2=SVD subspace pseudo inversion of SS'+(N-1)R
                                            !  3=SVD subspace pseudo inversion of SS'+EE'
 
-   logical, intent(in) :: update_randrot   ! Normally true; false for all but first grid point
+   logical, intent(in) :: lrandrot         ! True if additional random rotation is used
+   logical, intent(in) :: lupdate_randrot   ! Normally true; false for all but first grid point
                                            ! updates when using local analysis since all grid
                                            ! points need to use the same rotation.
 
+   logical, intent(in) :: lsakov           ! true if symmetrical sqare root of Sakov is used rather than
+                                           ! factorization.  Should be used as true!!!!
+
+   logical, intent(in) :: linflate         ! Additional variance inflation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    real X5(nrens,nrens)
-   integer i,nrmin,iblkmax
-   logical :: lreps=.false.
-
+   integer i,j,nrmin,iblkmax
+   logical lreps
+   logical, intent(in) :: ladapinf
+   real, intent(in)    :: infmult
+   real inffac
+   real ave(ndim)
 
    real, allocatable :: eig(:)
    real, allocatable :: W(:,:)
@@ -42,11 +59,10 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    real, allocatable :: Reps(:,:)
 
 
-
-   if (verbose) print * ,'analysis: verbose is on'
+   lreps = .FALSE.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Pseudo inversion of C=SS' +(N-1)*R
-   print *,'      analysis: Inversion of C:'
+!   print *,'      analysis: Inversion of C'
    if (nrobs == 1) then
       nrmin=1
       allocate(W(1,1))
@@ -98,7 +114,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Generation of X5 (or representers in EnKF case with few measurements)
-   print *,'      analysis: Generation of X5:'
+!   print *,'      analysis: Generation of X5:'
    select case (mode)
    case(11,12,13)
       allocate(X3(nrobs,nrens))
@@ -108,7 +124,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
          X3=D*eig(1)
       endif
 
-      if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim)) then
+      if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim) .and. .not.linflate) then
 !        Code for few observations ( m<nN/(2n-N) )
          if (verbose) print * ,'analysis: Representer approach is used'
          lreps=.true.
@@ -133,7 +149,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
       call genX2(nrens,nrobs,nrmin,S,W,eig,X2)
 
 ! Generating X5 matrix
-      call X5sqrt(X2,nrobs,nrens,nrmin,X5,update_randrot,mode)
+      call X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsakov)
 
    case default
       print *,'analysis: Unknown flag for mode: ',mode
@@ -142,24 +158,37 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Generation of inflation
-!   call inflationTEST(X5,nrens)
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Final ensemble update
-   print *,'      analysis: Final ensemble update:'
+!   print *,'      analysis: Final ensemble update:'
    if (lreps) then
-!     A=A+matmul(Reps,X3)
+      !     A=A+matmul(Reps,X3)
       call dgemm('n','n',ndim,nrens,nrobs,1.0,Reps,ndim,X3,nrobs,1.0,A,ndim)
-      call dumpX3(X3,S,nrobs,nrens)
    else
       iblkmax=min(ndim,200)
       call multa(A, X5, ndim, nrens, iblkmax )
-      call dumpX5(X5,nrens)
    endif
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   if (linflate .and. .not.lreps) then
+      if (ladapinf) then
+         call inflationfactor (X5,nrens,inffac) ! Adaptive inflation factor
+         inffac=1.0+(inffac-1.0)*infmult        ! Adjustment of addaptive
+         open(21,file='inflationfac.dat',position='append',status='unknown')
+            write(21,'(f13.6)')inffac
+         close(21)
+      else
+         inffac=infmult
+      endif
+      print *,'      analysis: inflation update with inflation factor= ',inffac
+      call ensmean(A,ave,ndim,nrens)
+      do j=1,nrens
+      do i=1,ndim
+         A(i,j)=ave(i) + (A(i,j)-ave(i))*inffac
+      enddo
+      enddo
+
+   endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    if (allocated(X2))    deallocate(X2)
@@ -167,4 +196,5 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    if (allocated(eig))   deallocate(eig)
    if (allocated(W))     deallocate(W)
    if (allocated(Reps))  deallocate(Reps)
+
 end subroutine

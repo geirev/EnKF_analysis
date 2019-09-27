@@ -1,0 +1,13 @@
+MODULES = \
+	m_ensmean.F90\
+	m_ensvar.F90\
+	m_mean_preserving_rotation.F90\
+	m_multa.F90\
+	mod_anafunc.F90\
+	m_random.F90\
+	m_randrot.F90
+
+F90FILES = \
+	analysis2_EnOI.F90\
+	analysis.F90
+

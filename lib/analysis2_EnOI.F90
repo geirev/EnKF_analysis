@@ -21,8 +21,7 @@ subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
    real, allocatable, dimension(:)   :: sig,work
 
    real sigsum,sigsum1,oneobs(1,1)
-   integer ierr,nrsigma,i,j,lwork,m
-   integer iblkmax, iens
+   integer ierr,nrsigma,i,j,lwork
    integer, parameter :: target= 3*22+1  ! Case dependent: test one value
    character(len=2) tag2
 
