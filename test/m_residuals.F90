@@ -25,8 +25,8 @@ subroutine residuals(ave,var,cc,nx,nc)
    enddo
 
    write(*,'(a)')'residuals of averages:'
-   write(*,'(tr12,9i12)')(jc,jc=1,nc)
-   write(*,'(tr23,9a12)')(cc(jc),jc=1,nc)
+   write(*,'(tr12,100i12)')(jc,jc=1,nc)
+   write(*,'(tr23,100a12)')(cc(jc),jc=1,nc)
    do jc=1,nc
       write(*,'(i5,tr2,a12,100f12.6)')jc,cc(jc),resave(1:jc,jc)/norm
    enddo
