@@ -64,7 +64,7 @@ program main
 
 ! Cases run
    integer, parameter :: nc=10
-   character(len=12) :: cc(1:nc)  =(/ 'thruth      ','prior       ','prior       ',&
+   character(len=12) :: cc(1:nc)  =(/ 'truth       ','prior       ','prior       ',&
                                      &'10          ','11          ','12          ','13          ',& 
                                      &'21          ','22          ','23          '/)
 

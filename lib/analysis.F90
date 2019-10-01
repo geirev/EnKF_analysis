@@ -15,7 +15,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    
    real, intent(inout) :: A(ndim,nrens)    ! ensemble matrix
    real, intent(in)    :: R(nrobs,nrobs)   ! matrix holding R (only used if mode=?1 or ?2)
-   real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurments innovation d+E-HA = d-H*mean(A)+E-S
+   real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurments innovation d+E-HA 
    real, intent(in)    :: E(nrobs,nrens)   ! matrix holding perturbations (only used if mode=?3)
    real, intent(in)    :: S(nrobs,nrens)   ! matrix holding HA` 
    real, intent(in)    :: innov(nrobs)     ! vector holding d-H*mean(A)
