@@ -1,16 +1,18 @@
 main.o:      makefile
-main.o:      m_enkflocal.o
+main.o:      m_enkf.o
 main.o:      m_ensmean.o
 main.o:      m_ensvar.o
 main.o:      m_measurements.o
 main.o:      mod_dimensions.o
 main.o:      MODEL.CPP
+main.o:      m_residuals.o
 main.o:      m_sample1D.o
 main.o:      m_set_random_seed2.o
-m_enkflocal.o:      makefile
-m_enkflocal.o:      m_getD.o
-m_enkflocal.o:      m_obs_pert.o
-m_enkflocal.o:      MODEL.CPP
+main.o:      m_tecsol.o
+m_enkf.o:      makefile
+m_enkf.o:      m_getD.o
+m_enkf.o:      m_obs_pert.o
+m_enkf.o:      MODEL.CPP
 m_ensmean.o:      makefile
 m_ensmean.o:      MODEL.CPP
 m_ensvar.o:      makefile
@@ -23,6 +25,7 @@ m_measurements.o:      makefile
 m_measurements.o:      MODEL.CPP
 m_measurements.o:      m_pseudo1D.o
 m_measurements.o:      m_random.o
+m_measurements.o:      m_sample1D.o
 m_newton1D.o:      makefile
 m_newton1D.o:      m_newtonfunc1D.o
 m_newton1D.o:      MODEL.CPP
@@ -53,6 +56,8 @@ m_pseudo1D.o:      mod_fftw3.o
 m_pseudo1D.o:      m_random.o
 m_randrot.o:      makefile
 m_randrot.o:      MODEL.CPP
+m_residuals.o:      makefile
+m_residuals.o:      MODEL.CPP
 m_sample1D.o:      makefile
 m_sample1D.o:      m_fixsample1D.o
 m_sample1D.o:      mod_anafunc.o
@@ -61,3 +66,5 @@ m_sample1D.o:      m_pseudo1D.o
 m_sample1D.o:      m_randrot.o
 m_set_random_seed2.o:      makefile
 m_set_random_seed2.o:      MODEL.CPP
+m_tecsol.o:      makefile
+m_tecsol.o:      MODEL.CPP

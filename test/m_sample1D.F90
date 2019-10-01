@@ -85,15 +85,19 @@ subroutine sample1D(A2,n,nrens,nre,nrr,dx,rh,samp_fix,periodic)
       enddo
       deallocate(work, A, VT1, U, sig,VT)
    else
-      print '(4(a,I5))','Standard sampling : nre=',nre,' nrr=',nrr,' ns=',ns,' nsx=',nsx 
+      print '(4(a,I5))','   sample1D: standard sampling : nre=',nre,' nrr=',nrr,' ns=',ns,' nsx=',nsx 
       A2(:,1:nrens)=A(:,1:nrens)
       deallocate(A)
    endif
 
-   print *,'sampling done'
+   print '(a)','   sample1D: sampling done'
 
 ! subtract mean and correct variance
    if (samp_fix) call fixsample1D(A2,n,nrens)
+
+
+
+
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -197,11 +201,11 @@ subroutine sample1D(A2,n,nrens,nre,nrr,dx,rh,samp_fix,periodic)
 
    endif
 
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-   if (diag) then
 ! SVD of new ensemble
+   if (diag) then
       allocate (U(n,nrnn))
       allocate (sig(nrnn))
       allocate (VT(nrnn,nrnn))

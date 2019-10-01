@@ -1,5 +1,5 @@
 subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncation, mode, &
-                    lrandrot,lupdate_randrot,istep,xpath,lsakov,linflate, ladapinf, infmult)
+                    lrandrot,lupdate_randrot,lsymsqrt,inflate, infmult)
 ! Computes the analysed ensemble for A using the EnKF or square root schemes.
 
    use mod_anafunc
@@ -8,10 +8,6 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    use m_ensvar
    implicit none
    
-   integer,  intent(in)          :: istep
-   character(Len=*),  Intent(in) :: xpath
-
-
    integer, intent(in) :: ndim             ! dimension of model state
    integer, intent(in) :: nrens            ! number of ensemble members
    integer, intent(in) :: nrobs            ! number of observations
@@ -39,40 +35,39 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
                                            ! updates when using local analysis since all grid
                                            ! points need to use the same rotation.
 
-   logical, intent(in) :: lsakov           ! true if symmetrical sqare root of Sakov is used rather than
-                                           ! factorization.  Should be used as true!!!!
+   logical, intent(in) :: lsymsqrt         ! true if symmetrical sqare root of Sakov is used (should be used)
 
-   logical, intent(in) :: linflate         ! Additional variance inflation
+   integer, intent(in) :: inflate          ! Inflation(0=off, 1=multiplicative, 2=adaptive according to Evensen 2009)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    real X5(nrens,nrens)
    integer i,j,nrmin,iblkmax
    logical lreps
-   logical, intent(in) :: ladapinf
    real, intent(in)    :: infmult
    real inffac
    real ave(ndim)
 
    real, allocatable :: eig(:)
-   real, allocatable :: W(:,:)
+   real, allocatable :: Z(:,:)
    real, allocatable :: X2(:,:)
    real, allocatable :: X3(:,:)
    real, allocatable :: Reps(:,:)
 
-
    lreps = .FALSE.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Pseudo inversion of C=SS' +(N-1)*R
-!   print *,'      analysis: Inversion of C'
    if (nrobs == 1) then
       nrmin=1
-      allocate(W(1,1))
+      allocate(Z(1,1))
       allocate(eig(1))
       eig(1)=dot_product(S(1,:),S(1,:))+real(nrens-1)*R(1,1)
       eig(1)=1.0/eig(1)
-      W(1,1)=1.0
+      Z(1,1)=1.0
 
    else
       select case (mode)
+      case(10)
+         call exact_diag_inversion(S,D,X5,nrens,nrobs)
+
       case(11,21)
          nrmin=nrobs
 !        Evaluate R= S*S` + (nrens-1)*R
@@ -81,59 +76,53 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
                             S, nrobs, &
              real(nrens-1), R, nrobs)
 
-!        Compute eigenvalue decomposition of R -> W*eig*W` 
-         allocate(W(nrobs,nrobs))
+!        Compute eigenvalue decomposition of R -> Z*eig*Z` 
+         allocate(Z(nrobs,nrobs))
          allocate(eig(nrobs))
-         call eigC(R,nrobs,W,eig)
+         call eigC(R,nrobs,Z,eig)
          call eigsign(eig,nrobs,truncation)
 
       case(12,22)
          nrmin=min(nrobs,nrens)
-         allocate(W(nrobs,nrmin))
+         allocate(Z(nrobs,nrmin))
          allocate(eig(nrmin))
-         call lowrankCinv(S,R,nrobs,nrens,nrmin,W,eig,truncation)
+         call lowrankCinv(S,R,nrobs,nrens,nrmin,Z,eig,truncation)
 
       case(13,23)
          nrmin=min(nrobs,nrens)
-         allocate(W(nrobs,nrmin))
+         allocate(Z(nrobs,nrmin))
          allocate(eig(nrmin))
-         call lowrankE(S,E,nrobs,nrens,nrmin,W,eig,truncation)
+         call lowrankE(S,E,nrobs,nrens,nrmin,Z,eig,truncation)
 
       case default
-         print *,'analysis: Unknown mode: ',mode
+         print *,'error analysis: Unknown mode: ',mode
          stop
       end select
    endif
-
-
-
-
-
-
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Generation of X5 (or representers in EnKF case with few measurements)
 !   print *,'      analysis: Generation of X5:'
    select case (mode)
+   case(10)
+
    case(11,12,13)
       allocate(X3(nrobs,nrens))
       if (nrobs > 1) then
-         call genX3(nrens,nrobs,nrmin,eig,W,D,X3)
+         call genX3(nrens,nrobs,nrmin,eig,Z,D,X3)
       else
          X3=D*eig(1)
       endif
 
-      if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim) .and. .not.linflate) then
+      if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim) .and. inflate==0) then
 !        Code for few observations ( m<nN/(2n-N) )
-         if (verbose) print * ,'analysis: Representer approach is used'
+         if (verbose) print '(a)' ,'   analysis: Representer approach is used'
          lreps=.true.
          allocate (Reps(ndim,nrobs))
-!        Reps=matmul(A,transpose(S))
          call dgemm('n','t',ndim,nrobs,nrens,1.0,A,ndim,S,nrobs,0.0,Reps,ndim)
       else
-         if (verbose) print * ,'analysis: X5 approach is used'
-!        X5=matmul(transpose(S),X3)
+         if (verbose) print '(a)' ,'   analysis: X5 approach is used'
          call dgemm('t','n',nrens,nrens,nrobs,1.0,S,nrobs,X3,nrobs,0.0,X5,nrens)
          do i=1,nrens
             X5(i,i)=X5(i,i)+1.0
@@ -142,24 +131,24 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
 
    case(21,22,23)
 ! Mean part of X5
-      call meanX5(nrens,nrobs,nrmin,S,W,eig,innov,X5)
+      call meanX5(nrens,nrobs,nrmin,S,Z,eig,innov,X5)
 
 ! Generating X2
       allocate(X2(nrmin,nrens))
-      call genX2(nrens,nrobs,nrmin,S,W,eig,X2)
+      call genX2(nrens,nrobs,nrmin,S,Z,eig,X2)
 
 ! Generating X5 matrix
-      call X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsakov)
+      call X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsymsqrt)
 
    case default
-      print *,'analysis: Unknown flag for mode: ',mode
+      print *,'error analysis: Unknown flag for mode: ',mode
       stop
    end select
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Final ensemble update
-!   print *,'      analysis: Final ensemble update:'
+   if (verbose) print '(a)' ,'   analysis: final update'
    if (lreps) then
       !     A=A+matmul(Reps,X3)
       call dgemm('n','n',ndim,nrens,nrobs,1.0,Reps,ndim,X3,nrobs,1.0,A,ndim)
@@ -168,33 +157,31 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
       call multa(A, X5, ndim, nrens, iblkmax )
    endif
 
+   if (verbose) print '(a)' ,'   analysis: final update done'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   if (linflate .and. .not.lreps) then
-      if (ladapinf) then
-         call inflationfactor (X5,nrens,inffac) ! Adaptive inflation factor
+   if (inflate==2 .and. .not.lreps) then
+         call inflationfactor(X5,nrens,inffac) ! Adaptive inflation factor
          inffac=1.0+(inffac-1.0)*infmult        ! Adjustment of addaptive
-         open(21,file='inflationfac.dat',position='append',status='unknown')
-            write(21,'(f13.6)')inffac
-         close(21)
-      else
+   elseif (inflate==1 .and. .not.lreps) then
          inffac=infmult
-      endif
-      print *,'      analysis: inflation update with inflation factor= ',inffac
+   endif
+   if (inflate > 0 ) then
+      print '(a,f10.4)','   analysis: inflation update with inflation factor= ',inffac
       call ensmean(A,ave,ndim,nrens)
       do j=1,nrens
       do i=1,ndim
          A(i,j)=ave(i) + (A(i,j)-ave(i))*inffac
       enddo
       enddo
-
    endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    if (allocated(X2))    deallocate(X2)
    if (allocated(X3))    deallocate(X3)
    if (allocated(eig))   deallocate(eig)
-   if (allocated(W))     deallocate(W)
+   if (allocated(Z))     deallocate(Z)
    if (allocated(Reps))  deallocate(Reps)
+   if (verbose) print '(a)' ,'   analysis: final update deallocation done'
 
 end subroutine

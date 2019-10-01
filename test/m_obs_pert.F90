@@ -15,7 +15,7 @@ subroutine obs_pert(E,nrens,nrobs,fixsamp,nre,nrr,dx,rh,covmodel,obspos)
    logical, intent(in)    :: fixsamp
    real,    intent(in)    :: dx
    real,    intent(in)    :: rh
-   character(len=100),  intent(in)    :: covmodel
+   character(len=8),  intent(in)    :: covmodel
    integer,    intent(in)    :: obspos(nrobs)
 
    real, allocatable :: work(:)

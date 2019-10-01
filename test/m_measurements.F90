@@ -1,6 +1,7 @@
 module m_measurements
+use m_sample1D
 contains
-subroutine measurements(ana,nx,obs,obspos,nrobs,obsvar,iobs,mkobs,time)
+subroutine measurements(ana,nx,obs,obspos,nrobs,obsvar,covmodel,rd,dx)
    use m_pseudo1D
    use m_random
    implicit none
@@ -9,46 +10,25 @@ subroutine measurements(ana,nx,obs,obspos,nrobs,obsvar,iobs,mkobs,time)
    integer, intent(in) :: nrobs
    integer, intent(in) :: obspos(nrobs)
    real,    intent(in) :: obsvar
+   real,    intent(in) :: rd
+   real,    intent(in) :: dx
    real,    intent(out):: obs(nrobs)
-   integer, intent(in) :: iobs
-   logical, intent(in) :: mkobs
-   real,    intent(in) :: time
+   character(len=8), intent(in) :: covmodel
 
-   integer m,i,reclA
-   real tt
-   logical ex
+   real :: obserr(nx)
 
-   inquire(iolength=reclA)tt,i,obs
-   inquire(file='obs.uf',exist=ex)
+   integer m
 
-   if (.not. mkobs) then
-      if (ex) then
-         open(10,file='obs.uf',form='unformatted',access='direct',recl=reclA)
-            read(10,rec=iobs,err=100)tt,i,obs
-         close(10)
-         if (tt /= time .or. i /= nrobs) then
-            print *,'Problem reading obs.uf :',iobs,tt,time,i,nrobs
-         endif
-      else
-         print *,'file obs.uf does not exist'
-         stop
-      endif
-
-    elseif (mkobs) then
-         
-      call random(obs,nrobs)
-
-      do m=1,nrobs
-         obs(m)= ana(obspos(m)) + sqrt(obsvar)*obs(m)
-      enddo
-
-      open(10,file='obs.uf',form='unformatted',access='direct',recl=reclA)
-         write(10,rec=iobs)time,nrobs,obs
-      close(10)
+   if (covmodel=='gaussian' .and. (rd > 0.0)) then
+      call sample1D(obserr,nx,1,1,1,dx,rd,.false.,.true.)
+   else
+      call random(obserr,nx)
    endif
 
-   return
-   100 stop 'Error reading obs.uf (record does not exist?)'
+   do m=1,nrobs
+      obs(m)= ana(obspos(m)) + sqrt(obsvar)*obserr(obspos(m))
+   enddo
+
 end subroutine measurements
 end module m_measurements
 

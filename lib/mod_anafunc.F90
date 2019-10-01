@@ -165,8 +165,8 @@ logical ex
          exit
       endif
    enddo
-   write(*,'(2(a,i5))')      '       analysis: Number of dominant eigenvalues: ',nrsigma,' of ',nrobs
-   write(*,'(2(a,g13.4),a)') '       analysis: Share (and truncation)        : ',sigsum1/sigsum,' (',truncation,')'
+   write(*,'(2(a,i5))')      '   analysis: Number of dominant eigenvalues: ',nrsigma,' of ',nrobs
+   write(*,'(2(a,g13.4),a)') '   analysis: Share (and truncation)        : ',sigsum1/sigsum,' (',truncation,')'
 
 
 end subroutine
@@ -268,7 +268,7 @@ end subroutine
 
 
 
-subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsakov)
+subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsymsqrt)
    use m_randrot
    use m_mean_preserving_rotation
    implicit none
@@ -280,13 +280,13 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsakov)
    logical, intent(in) :: lrandrot
    logical, intent(in) :: lupdate_randrot
    integer, intent(in) :: mode
-   logical, intent(in) :: lsakov  ! switch of Sakovs symmetrical sqrt if false
+   logical, intent(in) :: lsymsqrt  ! switch of Sakovs symmetrical sqrt if false
 
    real X3(nrens,nrens)
    real X33(nrens,nrens)
    real X4(nrens,nrens)
    real IenN(nrens,nrens)
-   real, save, allocatable :: ROT(:,:)
+   real, save, allocatable :: rot(:,:)
 
 
    real U(nrmin,1),sig(nrmin),VT(nrens,nrens)
@@ -294,15 +294,15 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsakov)
    integer i,j,lwork,ierr
 
 
-!   print *,'              X5sqrt: lsakov          = ',lsakov
+!   print *,'              X5sqrt: lsymsqrt          = ',lsymsqrt
 !   print *,'              X5sqrt: lrandrot        = ',lrandrot
 !   print *,'              X5sqrt: lupdate_randrot = ',lupdate_randrot
 
    if (lrandrot .and. lupdate_randrot) then
-      print *,'ROT'
-      if (allocated(ROT)) deallocate(ROT)
-      allocate(ROT(nrens,nrens))
-      call mean_preserving_rotation(ROT,nrens)
+      print *,'  analysis: mean preserving random rotation'
+      if (allocated(rot)) deallocate(rot)
+      allocate(rot(nrens,nrens))
+      call mean_preserving_rotation(rot,nrens)
    endif
 
 ! SVD of X2
@@ -336,7 +336,7 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsakov)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Multiply  X3* V' = (V*sqrt(I-sigma*sigma) * V' to ensure symmetric sqrt and 
 ! mean preserving rotation.   Sakov paper eq 13
-   if (lsakov) then
+   if (lsymsqrt) then
       call dgemm('n','n',nrens,nrens,nrens,1.0,X3,nrens,VT,nrens,0.0,X33,nrens)
    else
       X33=X3
@@ -542,7 +542,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
       endif
    enddo
 
-   write(*,'(a,i5,g13.5)') '      analysis svdS: dominant sing. values and share ',nrsigma,sigsum1/sigsum
+   write(*,'(a,i5,g13.5)') '   analysis: dominant singular values and share ',nrsigma,sigsum1/sigsum
 !   write(*,'(5g11.3)')sig0
 
    do i=1,nrsigma
@@ -551,6 +551,67 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
 
 end subroutine
 
+subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
+!        Exact inversion with diagonal R using: S' ( SS' + I )^{-1} == (S'S + I)^(-1) S'
+!        Analysis becomes
+!         mema=memf(I + (SS'+I)^{-1} S'D) 
+!              = memf (I + (S'S + I)^{-1} S' D) 
+!              = memf (I + Z L^{-1} Z' S' D) 
+!        In this formula S and D are bboth normalized by sqrt(N-1)
+!        The eigen value decomposition is of dimension N (rather than m)
+   integer, intent(in)   :: nrens
+   integer, intent(in)   :: nrobs
+   real, intent(in)      :: S(nrobs,nrens)
+   real, intent(in)      :: D(nrobs,nrens)
+   real, intent(out)     :: X5(nrens,nrens)
+   real, allocatable :: SS(:,:),SD(:,:),ZSD(:,:)
+   real, allocatable :: eig(:)
+   real, allocatable :: Z(:,:)
+   real n1
+   integer i,j
+
+   allocate(SS(nrens,nrens))
+   allocate(SD(nrens,nrens))
+   allocate(Z(nrens,nrens))
+   allocate(eig(nrens))
+   allocate(ZSD(nrens,nrens))
+
+   n1=1.0/real(nrens-1)
+
+   ! form S'S+I
+   call dgemm('t','n',nrens,nrens,nrobs,n1,S,nrobs,S,nrobs,0.0,SS,nrens)
+   do i=1,nrens
+      SS(i,i)=SS(i,i)+1.0
+   enddo
+
+   ! SD=S'*D with S and D scaled by sqrt(N-1)
+   call dgemm('t','n',nrens,nrens,nrobs,n1,S,nrobs,D,nrobs,0.0,SD,nrens)
+
+   ! eigenvalue decomp of SS
+   call eigC(SS,nrens,Z,eig)
+
+   ! ZSD=Z'*SD
+   call dgemm('t','n',nrens,nrens,nrens,1.0,Z,nrens,SD,nrens,0.0,ZSD,nrens)
+
+   ! ZSD=eig^{-1} ZSD
+   do j=1,nrens
+   do i=1,nrens
+      ZSD(i,j)=(1.0/eig(i))*ZSD(i,j)
+   enddo
+   enddo
+
+   ! X5=Z * (eig^{-1} ZSD)
+   call dgemm('n','n',nrens,nrens,nrens,1.0,Z,nrens,ZSD,nrens,0.0,X5,nrens)
+
+   do i=1,nrens
+      X5(i,i)=X5(i,i)+1.0
+   enddo
+   deallocate(eig)
+   deallocate(Z)
+   deallocate(SS)
+   deallocate(SD)
+   deallocate(ZSD)
+end subroutine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!! Inflation stuff
@@ -616,7 +677,6 @@ subroutine inflationfactor(X5,nrens,inffac)
    stdverens=sum(std(1:ndim))/real(ndim)
 
    inffac=1.0/stdverens
-   print *,'              inflationfactor:   inffac= ',inffac
 
 end subroutine
 

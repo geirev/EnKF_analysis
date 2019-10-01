@@ -530,7 +530,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
    enddo
 
    sigsum1=0.0
-! Significant eigenvalues.
+! Significant eigenvalues
    nrsigma=0
    do i=1,nrmin                       
       if (sigsum1/sigsum < truncation) then
@@ -542,7 +542,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
       endif
    enddo
 
-   write(*,'(a,i5,g13.5)') '      analysis svdS: dominant sing. values and share ',nrsigma,sigsum1/sigsum
+   write(*,'(a,i5,g13.5)') '  analysis: dominant sing. values and share ',nrsigma,sigsum1/sigsum
 !   write(*,'(5g11.3)')sig0
 
    do i=1,nrsigma

@@ -1,9 +1,9 @@
-module m_enkflocal
+module m_enkf
 contains
-subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_analysis,truncation,covmodel,dx,rh,Rexact,&
-               &lrandrot,lupdate_randrot,lsakov,&
-               &linflate, ladapinf, infmult,&
-               &llocal,robs,distance_based_loc, adaptive_based_loc, obstreshold)
+subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,truncation,covmodel,dx,rh,Rexact,rd,&
+               &lrandrot,lsymsqrt,&
+               &inflate, infmult,&
+               &local,robs, obstreshold,E0)
 
    use m_obs_pert
    use m_getD
@@ -19,27 +19,25 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
    real,    intent(in) :: obs(nrobs)
    real,    intent(in) :: obsvar
    integer, intent(in) :: obspos(nrobs)
-   logical, intent(in) :: fixsamp
    logical, intent(in) :: Rexact
 
    logical, intent(in) :: lrandrot
-   logical, intent(in) :: lupdate_randrot
-   logical, intent(in) :: lsakov
+   logical, intent(in) :: lsymsqrt
 
-   logical, intent(in) :: llocal
+   integer, intent(in) :: local
    real,    intent(in) :: robs          ! influence radii for the measurements
-   logical, intent(in) :: distance_based_loc
-   logical, intent(in) :: adaptive_based_loc
    real,    intent(in) :: obstreshold
 
-   logical, intent(in) :: linflate
-   logical, intent(in) :: ladapinf
+   integer, intent(in) :: inflate
    real, intent(in)    :: infmult
 
    real,    intent(in) :: truncation
-   character(len=100), intent(in) :: covmodel
+   character(len=8), intent(in) :: covmodel
    real,    intent(in) :: dx
    real,    intent(in) :: rh
+   real,    intent(in) :: rd
+
+   real,    intent(inout) :: E0(nrobs,nrens)   ! meas pert use to comapare between schemes
 
    real, allocatable :: R(:,:)
    real, allocatable :: E(:,:)
@@ -47,14 +45,14 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
    real, allocatable :: S(:,:)
    real, allocatable :: meanS(:)
    real, allocatable :: innovation(:)
-
-
+   real, allocatable :: scaling(:)
 
    integer iens,m,i,j
+   logical :: lupdate_randrot=.true.
 
 ! Local analysis variables
    integer l,icall
-   logical                lobs(nrobs)           ! which measurements are active
+   logical lobs(nrobs)           ! which measurements are active
    integer nobs
    logical local_rot
    real corr(nrobs),stdA,aveA,stdS
@@ -63,14 +61,13 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
    real, allocatable :: subinnovation(:)
 
 
-   print *,'EnKFlocal: ',llocal
-
 ! End Local analysis variables
 
    allocate(E(nrobs,nrens))
    allocate(D(nrobs,nrens))
    allocate(S(nrobs,nrens))
    allocate(meanS(nrobs))
+   allocate(scaling(nrobs))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Observe ensemble to construct the matrix S=HA
@@ -82,7 +79,14 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Construct observation perturbations E
-   call obs_pert(E,nrens,nrobs,fixsamp,nre,nrr,dx,rh,covmodel,obspos)
+   if (E0(1,1) == 0.0 ) then
+      print '(a)','       enkf: sampling measurement pert into E0'
+      call obs_pert(E,nrens,nrobs,.true.,nre,nrr,dx,rh,covmodel,obspos)
+      E0=E
+   else
+      print '(a)','       enkf: Reusing previous E stored in E0'
+      E=E0  ! use the same E for the different experiments
+   endif
 
 ! Introduce correct variances
    do iens=1,nrens
@@ -90,6 +94,7 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
          E(m,iens)=sqrt(obsvar)*E(m,iens)
       enddo
    enddo
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Construct ensemble of measurements D=d+E
@@ -126,7 +131,7 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
    R=0.0
 
    if (Rexact) then
-      print *,'   enkf: Exact R using covariance model: ',trim(covmodel)
+      print '(a,a)','       enkf: Exact R using covariance model: ',trim(covmodel)
       select case (trim(covmodel))
       case ('diagonal')
          do m=1,nrobs
@@ -135,15 +140,15 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
       case ('gaussian')
          do i=1,nrobs
          do j=1,nrobs
-            R(i,j)=obsvar*exp(-real(obspos(i)-obspos(j))**2/20.0**2)
+            R(i,j)=obsvar*exp(-real(obspos(i)-obspos(j))**2/rd**2)
          enddo
          enddo
       case default
-         print *,'Covmodel is invalid : ',trim(covmodel)
+         print '(a,a)','       enkf: covmodel is invalid : ',trim(covmodel)
       end select
    else
-      print *,'   enkf: Lowrank R using covariance model: ',trim(covmodel)
-      R=matmul(E,transpose(E))/float(nrens)
+      print '(a,a)','       enkf: lowrank R using covariance model: ',trim(covmodel)
+      R=matmul(E,transpose(E))/float(nrens-1)
    endif
 
 
@@ -152,41 +157,42 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
       innovation(m)      = obs(m)- meanS(m)
    enddo
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Scaling of matrices
+   print '(a)','       enkf: scale matrices'
+   do m=1,nrobs
+      scaling(m)=1./sqrt(R(m,m)) 
+      S(m,:)=scaling(m)*S(m,:)
+      E(m,:)=scaling(m)*E(m,:)
+      D(m,:)=scaling(m)*D(m,:)
+      innovation(m)=scaling(m)*innovation(m)
+   enddo
 
-   if (llocal) then
-      print *,'EnKFlocal : ',llocal, obspos(:)
-!      open(11,file='meascorr.dat',status='REPLACE')
+   do j=1,nrobs
+   do i=1,nrobs
+      R(i,j)=scaling(i)*R(i,j)*scaling(j)
+   enddo
+   enddo
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Computing analysis
+   if (local==0) then
+      print '(a,i2)','       enkf: calling global analysis with mode: ',mode_analysis
+      call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .true., truncation, mode_analysis, &
+                      lrandrot, lupdate_randrot, lsymsqrt, inflate, infmult)
+
+   else 
+      print '(a,i2)','       enkf: calling local analysis with mode: ',mode_analysis,local
       icall=0
       do i=1,nx
          nobs=0
          lobs(:)=.false.
 
 
-! Computing correlation functions etc
-         stdA=0.0
-         aveA=0.0
-         do l=1,nrens
-            aveA=aveA+mem(i,l)
-            stdA=stdA+mem(i,l)*mem(i,l)
-         enddo
-         aveA=aveA/real(nrens)
-         stdA=stdA/real(nrens)
-         stdA=stdA-aveA**2
-         stdA=sqrt(stdA)
 
-         do m=1,nrobs
-            corr(m)=0.0
-            stdS=0.0
-            do l=1,nrens
-               stdS=stdS+S(m,l)*S(m,l)
-               corr(m)=corr(m)+S(m,l)*mem(i,l)
-            enddo
-            stdS=sqrt(stdS/real(nrens))
-            corr(m)=corr(m)/real(nrens)
-            corr(m)=corr(m)/(stdS*stdA)
-         enddo
-
-         if (distance_based_loc) then
+! Distace based localization
+         if (local == 1) then
             do m=1,nrobs
                if (real(abs(obspos(m)-i)) < robs) then
                   lobs(m)=.true.
@@ -195,7 +201,31 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
             enddo
          endif
 
-         if(adaptive_based_loc) then
+! Adaptive localization
+         if(local == 2) then
+            stdA=0.0
+            aveA=0.0
+            do l=1,nrens
+               aveA=aveA+mem(i,l)
+               stdA=stdA+mem(i,l)*mem(i,l)
+            enddo
+            aveA=aveA/real(nrens)
+            stdA=stdA/real(nrens)
+            stdA=stdA-aveA**2
+            stdA=sqrt(stdA)
+
+            do m=1,nrobs
+               corr(m)=0.0
+               stdS=0.0
+               do l=1,nrens
+                  stdS=stdS+S(m,l)*S(m,l)
+                  corr(m)=corr(m)+S(m,l)*mem(i,l)
+               enddo
+               stdS=sqrt(stdS/real(nrens))
+               corr(m)=corr(m)/real(nrens)
+               corr(m)=corr(m)/(stdS*stdA)
+            enddo
+
             do m=1,nrobs
                if (abs(corr(m)) > obstreshold) then
                   lobs(m)=.true.
@@ -203,9 +233,6 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
                endif
             enddo
          endif
-
-!         print '(2(a,i5),a,4l1,a,4f10.4)','i=',i,' nobs=',nobs,' lobs=',lobs(:),' corr=',corr(:)
-!        write(11,'(i5,4f10.4)')i,corr(:)
 
 
          if (nobs > 0) then
@@ -236,19 +263,13 @@ subroutine enkflocal(mem,nx,nrens,obs,obsvar,obspos,nrobs,fixsamp,nre,nrr,mode_a
                 local_rot=.false.
             endif
             call analysis(submem, subR, subE, subS, subD, subinnovation, 1, nrens, nobs, .false., truncation, mode_analysis, &
-                         lrandrot, local_rot, 1, './', lsakov, linflate, ladapinf, infmult)
+                         lrandrot, local_rot, lsymsqrt, inflate, infmult)
             mem(i,:)=submem(1,:)
             deallocate(subD, subE, subS, subR, subinnovation, submem)
          endif
       enddo
-!      close(11)
-!      pause
-   else
-      print *,'   enkf: calling global analysis with mode: ',mode_analysis
-      call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .true., truncation, mode_analysis, &
-                      lrandrot, lupdate_randrot, 1, './', lsakov, linflate, ladapinf, infmult)
-
    endif
+   print '(a)','       enkf: done'
 
    deallocate(innovation)
    deallocate(R)

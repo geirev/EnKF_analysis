@@ -79,7 +79,7 @@ OMOD = $(MODULES:.F90=.o) $(MODULES77:.F=.o)
 
 
 
-all: $(TARGET) install
+all: $(TARGET) install libenkfanalysis.a
 
 
 $(TARGET): $(INC2) $(OMOD) $(OBJECTS) 
