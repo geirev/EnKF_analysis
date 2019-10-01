@@ -27,3 +27,8 @@ Installation:
     cd test; make
     cd build; testEnKF
 
+Note that for the test made here, both lib and test files are compiled in a build catalog. Thus,
+as long as lib is compiled first, all the library module files are available for the test program.
+
+In a real application it is probably better to copy the lib files into the code directory for the 
+application, since modules don't go well in a library file.
