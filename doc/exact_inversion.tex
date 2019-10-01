@@ -1,0 +1,160 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,head=17mm,headsep=7mm,top=20mm,left=22mm,right=22mm,bottom=15mm]{geometry}
+\usepackage{epstopdf}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsbsy}
+
+\newcommand {\lp}{\left(}
+\newcommand {\rp}{\right)}
+\newcommand {\lk}{\left\{ }
+\newcommand {\rk}{\right\} }
+
+\newcommand{\rmT}{\mathrm{T}}
+\newcommand{\rmf}{\mathrm{f}}
+\newcommand{\rma}{\mathrm{a}}
+
+\newcommand{\calO}{\mathcal{O}}
+
+\newcommand{\bmEN}{\mathbf{1}}
+\newcommand{\benen}{\frac{1}{N} \bmEN\bmEN^\rmT}
+\newcommand{\bIenena}{\bmI_N-\frac{1}{N} \bmEN\bmEN^\rmT}
+\newcommand{\bIenen}{\Big(\bmI_N-\frac{1}{N} \bmEN\bmEN^\rmT\Big)}
+\newcommand{\bmNull}{{\mathbf{0}}}
+\newcommand{\bmLambda}{\boldsymbol{\Lambda}}
+
+\newcommand{\bma}{{\mathbf{a}}}
+\newcommand{\bmb}{{\mathbf{b}}}
+\newcommand{\bmc}{{\mathbf{c}}}
+\newcommand{\bmd}{{\mathbf{d}}}
+\newcommand{\bme}{{\mathbf{e}}}
+\newcommand{\bmf}{{\mathbf{f}}}
+\newcommand{\bmg}{{\mathbf{g}}}
+\newcommand{\bmh}{{\mathbf{h}}}
+\newcommand{\bmi}{{\mathbf{i}}}
+\newcommand{\bmj}{{\mathbf{j}}}
+\newcommand{\bmk}{{\mathbf{k}}}
+\newcommand{\bml}{{\mathbf{l}}}
+\newcommand{\bmm}{{\mathbf{m}}}
+\newcommand{\bmn}{{\mathbf{n}}}
+\newcommand{\bmo}{{\mathbf{o}}}
+\newcommand{\bmp}{{\mathbf{p}}}
+\newcommand{\bmq}{{\mathbf{q}}}
+\newcommand{\bmr}{{\mathbf{r}}}
+\newcommand{\bms}{{\mathbf{s}}}
+\newcommand{\bmt}{{\mathbf{t}}}
+\newcommand{\bmu}{{\mathbf{u}}}
+\newcommand{\bmv}{{\mathbf{v}}}
+\newcommand{\bmw}{{\mathbf{w}}}
+\newcommand{\bmx}{{\mathbf{x}}}
+\newcommand{\bmy}{{\mathbf{y}}}
+\newcommand{\bmz}{{\mathbf{z}}}
+
+
+\newcommand{\bmA}{{\mathbf{A}}}
+\newcommand{\bmB}{{\mathbf{B}}}
+\newcommand{\bmC}{{\mathbf{C}}}
+\newcommand{\bmD}{{\mathbf{D}}}
+\newcommand{\bmE}{{\mathbf{E}}}
+\newcommand{\bmF}{{\mathbf{F}}}
+\newcommand{\bmG}{{\mathbf{G}}}
+\newcommand{\bmH}{{\mathbf{H}}}
+\newcommand{\bmI}{{\mathbf{I}}}
+\newcommand{\bmJ}{{\mathbf{J}}}
+\newcommand{\bmK}{{\mathbf{K}}}
+\newcommand{\bmL}{{\mathbf{L}}}
+\newcommand{\bmM}{{\mathbf{M}}}
+\newcommand{\bmN}{{\mathbf{N}}}
+\newcommand{\bmO}{{\mathbf{O}}}
+\newcommand{\bmP}{{\mathbf{P}}}
+\newcommand{\bmQ}{{\mathbf{Q}}}
+\newcommand{\bmR}{{\mathbf{R}}}
+\newcommand{\bmS}{{\mathbf{S}}}
+\newcommand{\bmT}{{\mathbf{T}}}
+\newcommand{\bmU}{{\mathbf{U}}}
+\newcommand{\bmV}{{\mathbf{V}}}
+\newcommand{\bmW}{{\mathbf{W}}}
+\newcommand{\bmX}{{\mathbf{X}}}
+\newcommand{\bmY}{{\mathbf{Y}}}
+\newcommand{\bmZ}{{\mathbf{Z}}}
+
+\setlength{\parindent}{0pt} \setlength{\parskip}{3mm} 
+
+\begin{document}
+\title{Exact inversion with diagonal error covariance matrix}
+\author{Geir Evensen}
+\maketitle
+Given the following identity that can be derived from the Woodbury matrix lemma,
+%
+\begin{equation}
+ (\bmI + \bmS^\rmT \bmC_{dd}^{-1} \bmS )^{-1} \bmS^\rmT  \bmC_{dd}^{-1}   = \bmS^\rmT (\bmS \bmS^\rmT + \bmC_{dd})^{-1} , \label{eq:woodbury}
+\end{equation}
+%
+or if $\bmC_{dd} \equiv \bmI$
+%
+\begin{equation}
+ (\bmI + \bmS^\rmT \bmS )^{-1} \bmS^\rmT   = \bmS^\rmT (\bmS \bmS^\rmT + \bmI)^{-1} . \label{eq:woodbury2c}
+\end{equation}
+%
+
+We start by defining the prior ensemble of $N$ model realizations
+%
+\begin{equation}
+ \bmX = \Big( \bmx^\rmf_1  ,\; \bmx^\rmf_2 ,\; \ldots\; ,\;  \bmx^\rmf_m \Big) ,
+\label{eq:X}
+\end{equation}
+%
+and we define the zero-mean (i.e., centered) anomaly matrix as
+%
+\begin{equation}
+ \bmA = \bmX \bIenen \big/\sqrt{N-1}   ,
+\label{eq:X}
+\end{equation}
+%
+where  $\bmEN \in \Re^{N}$ is defined as a vector with all elements equal to $1$, $\bmI_N$ is the $N$-dimensional identity matrix,
+and the projection $\bIenena$ subtracts the mean from the ensemble.
+
+
+Write the EnKF analysis equation as
+%
+\begin{align}
+\bmX^\rma  = \bmX^\rmf  + \bmA^\rmf \bmS^\rmT \big(  \bmS \bmS^\rmT + \bmC_{dd} \big)^{-1} \bmD
+\end{align}
+%
+where we define the measurements of the predicted model with the mean subtracted
+%
+\begin{equation}
+ \bmS= \bmh\big(\bmX^\rmf\big) \bIenen \big/\sqrt{N-1} 
+\label{eq:}
+\end{equation}
+%
+%
+\begin{equation}
+ \bmD= \bmd \bmEN^\rmT  + \bmE - \bmh\big(\bmX^\rmf\big) 
+\label{eq:}
+\end{equation}
+%
+
+With a diagonal $\bmC_{dd} = \bmI$ we can write the analysis equation as 
+%
+\begin{align}
+\bmX^\rma  &= \bmX^\rmf  + \bmA^\rmf          \bmS^\rmT \big( \bmS \bmS^\rmT + \bmI \big)^{-1} \bmD                                 \label{eq:a}\\
+           &= \bmX^\rmf  + \bmX^\rmf \bIenen  \bmS^\rmT \big( \bmS \bmS^\rmT + \bmI \big)^{-1} \bmD \big/\sqrt{N-1}                 \label{eq:b}\\
+           &= \bmX^\rmf  \Big( \bmI  +        \bmS^\rmT \big( \bmS \bmS^\rmT + \bmI \big)^{-1} \widetilde{\bmD}  \Big)              \label{eq:c}\\
+           &= \bmX^\rmf  \Big( \bmI  +                  \big( \bmI + \bmS^\rmT \bmS \big)^{-1} \bmS^\rmT \widetilde{\bmD}  \Big)    \label{eq:d}\\
+           &= \bmX^\rmf  \Big( \bmI  +                  \big( \bmZ \bmLambda \bmZ^\rmT \big)^{-1} \bmS^\rmT \widetilde{\bmD}  \Big) \label{eq:e}\\
+           &= \bmX^\rmf  \Big( \bmI  +                        \bmZ \bmLambda^{-1} \bmZ^\rmT  \bmS^\rmT \widetilde{\bmD}  \Big).     \label{eq:f}
+\end{align}
+%
+In Eq.~(\ref{eq:b}) we inserted Eq.~(\ref{eq:X}) for $\bmA^\rmf$,
+then in Eq.~(\ref{eq:c}) we have used that $\bmEN^\rmT \bmS^\rmT =0$ and we have defined $\widetilde{\bmD} = \bmD/\sqrt{N-1}$.
+In Eq.~(\ref{eq:d}) we have used the Woodbury lemma in Eq.~(\ref{eq:woodbury2c}) which reduces the dimension of the inverse matrix from $m\times m$ to $N \times N$.
+By forming the matrix $ \bmI + \bmS^\rmT \bmS$ and computing its eigenvalue decomposition we obtain the final result for the analysis in Eq.~(\ref{eq:f}), which can 
+be computed to a cost $\calO(mN^2)$.
+
+This scheme is implemented as option $\textit{mode}=10$.
+
+
+
+\end{document}
