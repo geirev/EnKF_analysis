@@ -1,13 +1,7 @@
 # EnKF_Analysis
 EnKF analysis routines in Fortran 90.  Stochastic and SQRT formulations with subspace inversion. 
 
-Analysis routines:
 
-analysis.F90:   Routine updated 02/02/2007 including options for perturbed
-                observations or symmetric square root schemes
-
-analysis2_EnOI.F90: Ensemble OI version of the perturbed observations analysis
-
-Note that if you using the square root scheme with the random rotation of anomalies AND the local analysis,
-you have to make sure you use the same rotation for each grid point. You may then compute the random matrix
-outside the analysis routine, and pass the same matrix in each local call.
+lib:     The EnKF analysis routines and a makefile for compiling a library libenkfanalysis.a
+support: Some additional routines for defining a model state and reading/writing it to file.
+test:    A test or example program used to verify the analysis scheme with different options.

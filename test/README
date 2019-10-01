@@ -1,0 +1,6 @@
+This is a test code for the EnKF analysis schemes.
+
+The EnKF analysis is run using different version of the update scheme.
+
+The m_enkflocal.F90 routine is an extensive implementation for local analysis.
+

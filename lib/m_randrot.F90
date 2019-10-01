@@ -9,7 +9,6 @@ subroutine randrot(Q,nrens)
    real sigma(nrens), work(10*nrens)
    real, parameter :: pi=3.14159253589
    integer ierr
-   real meanB
 
    call random_number(B)
    call random_number(A)

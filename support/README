@@ -1,0 +1,2 @@
+These routines can be adapted to storing a model state of several variables,
+and writing and reading them from disk.

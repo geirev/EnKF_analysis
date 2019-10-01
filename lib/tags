@@ -1,0 +1,22 @@
+X5sqrt	mod_anafunc.F90	/^subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot/
+analysis	analysis.F90	/^subroutine analysis(A, R, E, S, D, innov, ndim, nr/
+analysis2_EnOI	analysis2_EnOI.F90	/^subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nre/
+dumpX3	mod_anafunc.F90	/^subroutine dumpX3(X3,S,nrobs,nrens)$/
+dumpX5	mod_anafunc.F90	/^subroutine dumpX5(X5,nrens)$/
+eigC	mod_anafunc.F90	/^subroutine eigC(R,nrobs,Z,eig)$/
+eigsign	mod_anafunc.F90	/^subroutine eigsign(eig,nrobs,truncation)$/
+ensmean	m_ensmean.F90	/^subroutine ensmean(A,ave,nx,nrens)$/
+ensvar	m_ensvar.F90	/^subroutine ensvar(A,ave,var,nx,nrens)$/
+genX2	mod_anafunc.F90	/^subroutine genX2(nrens,nrobs,nrmin,S,W,eig,X2)$/
+genX3	mod_anafunc.F90	/^subroutine genX3(nrens,nrobs,nrmin,eig,W,D,X3)$/
+inflateA	mod_anafunc.F90	/^subroutine inflateA(ndim,nrens,A,inflation)$/
+inflationfactor	mod_anafunc.F90	/^subroutine inflationfactor(X5,nrens,inffac)$/
+lowrankCee	mod_anafunc.F90	/^subroutine lowrankCee(B,nrmin,nrobs,nrens,R,U0,sig/
+lowrankCinv	mod_anafunc.F90	/^subroutine lowrankCinv(S,R,nrobs,nrens,nrmin,W,eig/
+lowrankE	mod_anafunc.F90	/^subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,tr/
+meanX5	mod_anafunc.F90	/^subroutine meanX5(nrens,nrobs,nrmin,S,W,eig,innov,/
+mean_preserving_rotation	m_mean_preserving_rotation.F90	/^subroutine mean_preserving_rotation(Up,nrens)$/
+multa	m_multa.F90	/^subroutine multa(A, X, ndim, nrens, iblkmax)$/
+random	m_random.F90	/^subroutine random(work1,n)$/
+randrot	m_randrot.F90	/^subroutine randrot(Q,nrens)$/
+svdS	mod_anafunc.F90	/^subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,trunca/
