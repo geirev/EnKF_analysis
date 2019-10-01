@@ -115,7 +115,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
          X3=D*eig(1)
       endif
 
-      if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim) .and. inflate==0) then
+      if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim) .and. inflate/=2) then
 !        Code for few observations ( m<nN/(2n-N) )
          if (verbose) print '(a)' ,'   analysis: Representer approach is used'
          lreps=.true.
@@ -160,13 +160,15 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    if (verbose) print '(a)' ,'   analysis: final update done'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   if (inflate==2 .and. .not.lreps) then
-         call inflationfactor(X5,nrens,inffac) ! Adaptive inflation factor
-         inffac=1.0+(inffac-1.0)*infmult        ! Adjustment of addaptive
-   elseif (inflate==1 .and. .not.lreps) then
-         inffac=infmult
+! Inflation
+   if (inflate==1) then
+      inffac=infmult
+   elseif (inflate==2) then
+      call inflationfactor(X5,nrens,inffac)  ! Adaptive inflation factor
+      inffac=1.0+(inffac-1.0)*infmult        ! Adjustment of addaptive
    endif
-   if (inflate > 0 ) then
+
+   if (inflate > 0) then
       print '(a,f10.4)','   analysis: inflation update with inflation factor= ',inffac
       call ensmean(A,ave,ndim,nrens)
       do j=1,nrens
@@ -182,6 +184,5 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    if (allocated(eig))   deallocate(eig)
    if (allocated(Z))     deallocate(Z)
    if (allocated(Reps))  deallocate(Reps)
-   if (verbose) print '(a)' ,'   analysis: final update deallocation done'
 
 end subroutine
