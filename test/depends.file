@@ -38,13 +38,6 @@ m_obs_pert.o:      MODEL.CPP
 m_obs_pert.o:      m_random.o
 m_obs_pert.o:      m_randrot.o
 m_obs_pert.o:      m_sample1D.o
-mod_anafunc.o:      makefile
-mod_anafunc.o:      m_ensmean.o
-mod_anafunc.o:      m_mean_preserving_rotation.o
-mod_anafunc.o:      m_multa.o
-mod_anafunc.o:      MODEL.CPP
-mod_anafunc.o:      m_random.o
-mod_anafunc.o:      m_randrot.o
 mod_dimensions.o:      makefile
 mod_dimensions.o:      MODEL.CPP
 mod_fftw3.o:      makefile

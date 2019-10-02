@@ -8,7 +8,6 @@ MODULES = \
 	m_newton1D.F90\
 	m_newtonfunc1D.F90\
 	m_obs_pert.F90\
-	mod_anafunc.F90\
 	mod_dimensions.F90\
 	mod_fftw3.F90\
 	m_pseudo1D.F90\
