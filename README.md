@@ -1,4 +1,4 @@
-# EnKF_Analysis
+# EnKF_analysis
 EnKF analysis routines in Fortran 90.  Stochastic and SQRT formulations with subspace inversion. 
 
 lib:     The EnKF analysis routines and a makefile for compiling a library libenkfanalysis.a
@@ -30,5 +30,6 @@ Installation:
 Note that for the test made here, both lib and test files are compiled in a build catalog. Thus,
 as long as lib is compiled first, all the library module files are available for the test program.
 
-In a real application it is probably better to copy the lib files into the code directory for the 
-application, since modules don't go well in a library file.
+In a real application I suggest that you change the build dir in the lib/makefile to correspond to the
+build dir of your application,  and run make to install libanalysis.a and the .mod files in that 
+directory.
