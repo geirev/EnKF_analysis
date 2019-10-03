@@ -22,10 +22,12 @@ test:    A test or example program used to verify the analysis scheme with diffe
 These routines are used to verify some basic properties of the different analysis schemes as 
 well as studying their numerical behaviour.
 
-Installation: 
+Installation:
+
     cd lib; make
 
 To run testEnKF:
+
     git clone EnKF_sampling
     
     change build in EnKF_sampling/lib/makefile to point to EnKF_analysis/build
