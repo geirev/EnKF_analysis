@@ -27,8 +27,11 @@ Installation:
 
 To run testEnKF:
     git clone EnKF_sampling
+    
     change build in EnKF_sampling/lib/makefile to point to EnKF_analysis/build
+    
     cd test; make
+    
     cd build; testEnKF
 
 Note that for the test made here, both lib and test files are compiled in the same build catalog. Thus,
