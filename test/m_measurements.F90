@@ -20,7 +20,7 @@ subroutine measurements(ana,nx,obs,obspos,nrobs,obsvar,covmodel,rd,dx)
    integer m
 
    if (covmodel=='gaussian' .and. (rd > 0.0)) then
-      call sample1D(obserr,nx,1,1,1,dx,rd,.false.,.true.)
+      call pseudo1D(obserr,nx,1,rd,dx,nx)
    else
       call random(obserr,nx)
    endif

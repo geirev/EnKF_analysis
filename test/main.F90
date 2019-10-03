@@ -1,7 +1,7 @@
 program main
 ! Test program for EnKF analysis
    use mod_dimensions
-   use m_sample1D
+   use m_pseudo1D
    use m_set_random_seed2
    use m_enkf
    use m_measurements
@@ -88,7 +88,7 @@ program main
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! The true solution is a perturbation around the value "const" where the 
 ! perturbation is a smooth pseudo random field drawn from  N(0,1,rh).
-   call sample1D(ana,nx,1,1,1,dx,rh,.false.,.true.)
+   call pseudo1D(ana,nx,1,rh,dx,nx)
    ana=ana+const
    ave(:,1)=ana(:)
    var(:,1)=0.0
@@ -96,7 +96,7 @@ program main
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! First guess solution is a random perturbation from N(0,1,rh) added to the analytical truth
-   call sample1D(fg,nx,1,1,1,dx,rh,.false.,.true.)
+   call pseudo1D(fg,nx,1,rh,dx,nx)
    fg=(fg + ana-const)/sqrt(2.0) +  const !+ana    
    ave(:,2)=fg(:)
    var(:,2)=inivar
@@ -113,7 +113,7 @@ program main
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Initial ensemble is a random perturbation from N(0,inivar,rh) added to the analytical truth
-   call sample1D(mem0,nx,nrens,1,1,dx,rh,.true.,.true.)
+   call pseudo1D(mem0,nx,nrens,rh,dx,nx)
    do j=1,nrens
       mem0(:,j)=fg(:) + sqrt(inivar)*mem0(:,j)
    enddo

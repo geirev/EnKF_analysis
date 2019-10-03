@@ -24,12 +24,16 @@ well as studying their numerical behaviour.
 
 Installation: 
     cd lib; make
+
+To run testEnKF:
+    git clone EnKF_sampling
+    change build in EnKF_sampling/lib/makefile to point to EnKF_analysis/build
     cd test; make
     cd build; testEnKF
 
-Note that for the test made here, both lib and test files are compiled in a build catalog. Thus,
+Note that for the test made here, both lib and test files are compiled in the same build catalog. Thus,
 as long as lib is compiled first, all the library module files are available for the test program.
 
 In a real application I suggest that you change the build dir in the lib/makefile to correspond to the
 build dir of your application,  and run make to install libanalysis.a and the .mod files in that 
-directory.
+directory.  See, e.g., https://www.linuxquestions.org/questions/programming-9/fortran-90-and-shared-libraries-699152/

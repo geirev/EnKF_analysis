@@ -4,7 +4,7 @@ subroutine obs_pert(E,nrens,nrobs,fixsamp,nre,nrr,dx,rh,covmodel,obspos)
    use mod_dimensions
    use m_random
    use m_randrot
-   use m_sample1D
+   use m_pseudo1D
    use m_fixsample1D
    implicit none
    integer, intent(in)    :: nrobs
@@ -39,7 +39,7 @@ subroutine obs_pert(E,nrens,nrobs,fixsamp,nre,nrr,dx,rh,covmodel,obspos)
    elseif(trim(covmodel) == 'gaussian') then
      
       allocate(EEfield(nx,ns))
-      call sample1D(EEfield,nx,nrens,nre,nrr,dx,rh,fixsamp,.true.)
+      call pseudo1D(EEfield,nx,nrens,rh,dx,nx)
 
       do iens=1,ns
       do m=1,nrobs
