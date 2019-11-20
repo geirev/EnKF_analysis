@@ -1,6 +1,6 @@
 module m_enkf
 contains
-subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,truncation,covmodel,dx,rh,Rexact,rd,&
+subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,covmodel,dx,rh,rd,&
                &lrandrot,lsymsqrt,&
                &inflate, infmult,&
                &local,robs, obstreshold,E0)
@@ -11,15 +11,12 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
    integer, intent(in) :: nx
    integer, intent(in) :: nrens
    integer, intent(in) :: nrobs
-   integer, intent(in) :: nre
-   integer, intent(in) :: nrr
    integer, intent(in) :: mode_analysis
 
    real,    intent(inout) :: mem(nx,nrens)
    real,    intent(in) :: obs(nrobs)
    real,    intent(in) :: obsvar
    integer, intent(in) :: obspos(nrobs)
-   logical, intent(in) :: Rexact
 
    logical, intent(in) :: lrandrot
    logical, intent(in) :: lsymsqrt
@@ -55,10 +52,11 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
    logical lobs(nrobs)           ! which measurements are active
    integer nobs
    logical local_rot
-   real corr(nrobs),stdA,aveA,stdS
+   real corr(nrobs),stdA,aveA,stdS,dist
    real, allocatable, dimension(:,:) :: subS,subE,subD, subR
    real, allocatable, dimension(:,:)   :: submem
    real, allocatable :: subinnovation(:)
+   real :: start, finish
 
 
 ! End Local analysis variables
@@ -81,7 +79,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
 ! Construct observation perturbations E
    if (E0(1,1) == 0.0 ) then
       print '(a)','       enkf: sampling measurement pert into E0'
-      call obs_pert(E,nrens,nrobs,.true.,nre,nrr,dx,rh,covmodel,obspos)
+      call obs_pert(E,nrens,nrobs,.true.,dx,rh,covmodel,obspos)
       E0=E
    else
       print '(a)','       enkf: Reusing previous E stored in E0'
@@ -129,8 +127,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    allocate(R(nrobs,nrobs))
    R=0.0
-
-   if (Rexact) then
+   if (mode_analysis==11 .or. mode_analysis==21) then
       print '(a,a)','       enkf: Exact R using covariance model: ',trim(covmodel)
       select case (trim(covmodel))
       case ('diagonal')
@@ -140,7 +137,9 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
       case ('gaussian')
          do i=1,nrobs
          do j=1,nrobs
-            R(i,j)=obsvar*exp(-real(obspos(i)-obspos(j))**2/rd**2)
+            dist=abs(obspos(i)-obspos(j))
+            if (dist > real(nx)/2.0) dist = real(nx) - dist
+            R(i,j)=obsvar*exp(-dist**2/rd**2)
          enddo
          enddo
       case default
@@ -177,6 +176,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Computing analysis
+   call cpu_time(start)
    if (local==0) then
       print '(a,i2)','       enkf: calling global analysis with mode: ',mode_analysis
       call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .true., truncation, mode_analysis, &
@@ -269,6 +269,8 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,nre,nrr,mode_analysis,trunc
          endif
       enddo
    endif
+   call cpu_time(finish)
+   print '("   analysis: time = ",f6.3," seconds.")',finish-start
    print '(a)','       enkf: done'
 
    deallocate(innovation)

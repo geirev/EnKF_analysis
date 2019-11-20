@@ -2,6 +2,7 @@ main.o:      makefile
 main.o:      m_enkf.o
 main.o:      m_ensmean.o
 main.o:      m_ensvar.o
+main.o:      m_fixsample1D.o
 main.o:      m_measurements.o
 main.o:      mod_dimensions.o
 main.o:      MODEL.CPP
@@ -33,8 +34,6 @@ m_obs_pert.o:      m_random.o
 m_obs_pert.o:      m_randrot.o
 mod_dimensions.o:      makefile
 mod_dimensions.o:      MODEL.CPP
-m_randrot.o:      makefile
-m_randrot.o:      MODEL.CPP
 m_residuals.o:      makefile
 m_residuals.o:      MODEL.CPP
 m_tecsol.o:      makefile

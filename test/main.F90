@@ -2,6 +2,7 @@ program main
 ! Test program for EnKF analysis
    use mod_dimensions
    use m_pseudo1D
+   use m_fixsample1D
    use m_set_random_seed2
    use m_enkf
    use m_measurements
@@ -14,33 +15,28 @@ program main
 ! Analysis scheme to use
    integer mode_analysis                           ! 10 Stochastic EnKF, Exact inversion with diagonal R
                                                    ! 11 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)R) 
-                                                   ! 12 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)R) 
-                                                   ! 13 Stochastic EnKF, Subspace inversion of        (SS'+(N-1)R)
-                                                   ! 21 SQRT EnKF, Subspace inversion of        (SS'+EE')
-                                                   ! 22 SQRT EnKF, Subspace inversion of        (SS'+(N-1)R)
+                                                   ! 12 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)Re)  Re=EE'
+                                                   ! 13 Stochastic EnKF, Subspace inversion of        (SS'+(N-1)EE)
+                                                   ! 21 SQRT EnKF, Subspace inversion of        (SS'+R)
+                                                   ! 22 SQRT EnKF, Subspace inversion of        (SS'+(N-1)Re)        Re=EE'
                                                    ! 23 SQRT EnKF, Subspace inversion of        (SS'+EE')
 ! Main tests of consistency between schemes: 
-! Rexact=.true., nrobs < nrens, truncation=1.00, covmodel=diagonal, lsymsqrt=true, lrandrot=true, inflation=0, localization=0
-!   ==> 10, 11, 12, 21, 22 gives exactly same solution for the mean (13 and 23 uses ensemble R)
-!   ==> 13, 23 gives exactly same solution for the mean
-!   ==> 10, 11, 12 gives exactly same variance
-!   ==> 21, 22 gives exactly same variance
-
-! Rexact=.false., nrobs < nrens, truncation=1.00, covmodel=diagonal, lsymsqrt=true, lrandrot=true, inflation=0, localization=0
-!   ==> 11, 12, 13, 21, 22, 23 gives exactly same solution for the mean (10 still uses Rexact implicitly)
-!   ==> 11, 12, 13 gives exactly same variance
-!   ==> 21, 22, 23 gives exactly same variance
+! nrobs < nrens, truncation=1.00, covmodel=diagonal, lsymsqrt=true, lrandrot=true, inflation=0, localization=0
+!   ==> 10, 11, 21 gives exactly same solution for the mean (all uses exact diagonal R)
+!   ==> 12, 13, 22, 23 gives exactly same solution for the mean (all uses ensemble R)
+!   ==> 10, 11, gives exactly same variance (different solvers with exact R=I)
+!   ==> 12, 13 gives exactly same variance (subspace solvers with ensemble R)
+!   ==> 23, 23 gives exactly same variance (subspace solvers with ensemble R)
 
 
 ! Model for measurements and errors
    integer, parameter :: nrobs=50                  ! Number of measurements
-   logical            :: Rexact=.true.             ! Use exact(true) or lowrank(false) R matrix (allows for testing the impact of lowrank R)
    real               :: obsvar=0.25               ! Measurement variance
-   character(len=8  ) :: covmodel='diagonal'       ! diagonal or gaussian
+   character(len=8  ) :: covmodel='gaussian'       ! diagonal or gaussian
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
 
 ! Model ensemble 
-   integer, parameter :: nrens=100                 ! ensemble size
+   integer, parameter :: nrens=1000                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing
@@ -114,6 +110,7 @@ program main
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Initial ensemble is a random perturbation from N(0,inivar,rh) added to the analytical truth
    call pseudo1D(mem0,nx,nrens,rh,dx,nx)
+   call fixsample1D(mem0,nx,nrens)
    do j=1,nrens
       mem0(:,j)=fg(:) + sqrt(inivar)*mem0(:,j)
    enddo
@@ -132,8 +129,8 @@ program main
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
       print '(a,i2,a,i2)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic
       mem=mem0
-      call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,1,1,mode_analysis,&
-               &truncation,covmodel,dx,rh,Rexact,rd,lrandrot,lsymsqrt,&
+      call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
+               &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
                &inflate,infmult,local,robs,obstreshold,E0)
       call ensmean(mem,ave(1,ic),nx,nrens)
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
@@ -146,8 +143,8 @@ program main
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
       print '(a,i2,a,i2)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic
       mem=mem0
-      call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,1,1,mode_analysis,&
-               &truncation,covmodel,dx,rh,Rexact,rd,lrandrot,lsymsqrt,&
+      call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
+               &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
                &inflate,infmult,local,robs,obstreshold,E0)
       call ensmean(mem,ave(1,ic),nx,nrens)
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
