@@ -31,7 +31,7 @@ subroutine randrot(Q,nrens)
 
    do i=1,nrens
       diagR(i)=Q(i,i)/abs(Q(i,i))
-      print '(a,2f12.4)','R(i,i), diagR(i) ',Q(i,i), diagR(i)
+!      print '(a,2f12.4)','R(i,i), diagR(i) ',Q(i,i), diagR(i)
    enddo
 
 ! Construction of Q
@@ -46,4 +46,3 @@ subroutine randrot(Q,nrens)
 
 end subroutine randrot
 end module m_randrot
-

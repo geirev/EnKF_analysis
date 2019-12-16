@@ -1,9 +1,59 @@
-enkf	m_enkf.F90	/^subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nro/
-ensmean	m_ensmean.F90	/^subroutine ensmean(A,ave,nx,nrens)$/
-ensvar	m_ensvar.F90	/^subroutine ensvar(A,ave,var,nx,nrens)$/
-getD	m_getD.F90	/^subroutine getD(D,subD,nrobs,nrens,lobs,nobs)$/
-measurements	m_measurements.F90	/^subroutine measurements(ana,nx,obs,obspos,nrobs,ob/
-obs_pert	m_obs_pert.F90	/^subroutine obs_pert(E,nrens,nrobs,fixsamp,nre,nrr,/
-randrot	m_randrot.F90	/^subroutine randrot(Q,nrens)$/
-residuals	m_residuals.F90	/^subroutine residuals(ave,var,cc,nx,nc)$/
-tecsol	m_tecsol.F90	/^subroutine tecsol(ave,var,obs,obspos,nx,nrobs,nc)$/
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+E0	main.F90	/^   real E0(/;"	v	program:main
+ana	main.F90	/^   real ana(/;"	v	program:main
+ave	main.F90	/^   real ave(/;"	v	program:main
+cc	main.F90	/^   character(len=12) :: cc(/;"	v	program:main
+const	main.F90	/^   real               :: const=/;"	v	program:main
+covmodel	main.F90	/^   character(len=8  ) :: covmodel=/;"	v	program:main
+dobs	main.F90	/^   real dobs$/;"	v	program:main
+dx	main.F90	/^   real               :: dx=/;"	v	program:main
+enkf	m_enkf.F90	/^subroutine enkf(/;"	s	module:m_enkf
+ensmean	m_ensmean.F90	/^subroutine ensmean(/;"	s	module:m_ensmean
+ensvar	m_ensvar.F90	/^subroutine ensvar(/;"	s	module:m_ensvar
+fg	main.F90	/^   real fg(/;"	v	program:main
+getD	m_getD.F90	/^subroutine getD(/;"	s	module:m_getD
+i	main.F90	/^   in/;"	v	program:main
+ic	main.F90	/^   integer i,j,m,ic /;"	v	program:main
+inflate	main.F90	/^   integer            :: inflate=/;"	v	program:main
+infmult	main.F90	/^   real               :: infmult=/;"	v	program:main
+inivar	main.F90	/^   real               :: inivar=/;"	v	program:main
+j	main.F90	/^   integer i,j,/;"	v	program:main
+local	main.F90	/^   integer            :: local=/;"	v	program:main
+lrandrot	main.F90	/^   logical            :: lrandrot=/;"	v	program:main
+lsymsqrt	main.F90	/^   logical            :: lsymsqrt=/;"	v	program:main
+m	main.F90	/^   integer i,j,m,/;"	v	program:main
+m_enkf	m_enkf.F90	/^module m_enkf$/;"	m
+m_ensmean	m_ensmean.F90	/^module m_ensmean$/;"	m
+m_ensvar	m_ensvar.F90	/^module m_ensvar$/;"	m
+m_getD	m_getD.F90	/^module m_getD$/;"	m
+m_measurements	m_measurements.F90	/^module m_measurements$/;"	m
+m_obs_pert	m_obs_pert.F90	/^module m_obs_pert$/;"	m
+m_residuals	m_residuals.F90	/^module m_residuals$/;"	m
+m_tecsol	m_tecsol.F90	/^module m_tecsol$/;"	m
+main	main.F90	/^program main$/;"	p
+measurements	m_measurements.F90	/^subroutine measurements(/;"	s	module:m_measurements
+mem	main.F90	/^   real mem(/;"	v	program:main
+mem0	main.F90	/^   real mem0(/;"	v	program:main
+mod_dimensions	mod_dimensions.F90	/^module mod_dimensions$/;"	m
+mode_analysis	main.F90	/^   integer mode_analysis /;"	v	program:main
+nc	main.F90	/^   integer, parameter :: nc=/;"	v	program:main
+nrens	main.F90	/^   integer, parameter :: nrens=/;"	v	program:main
+nrobs	main.F90	/^   integer, parameter :: nrobs=/;"	v	program:main
+nx	mod_dimensions.F90	/^   integer, parameter :: nx=/;"	v	module:mod_dimensions
+obs	main.F90	/^   real    obs(/;"	v	program:main
+obs_pert	m_obs_pert.F90	/^subroutine obs_pert(/;"	s	module:m_obs_pert
+obspos	main.F90	/^   integer obspos(/;"	v	program:main
+obstreshold	main.F90	/^   real               :: obstreshold=/;"	v	program:main
+obsvar	main.F90	/^   real               :: obsvar=/;"	v	program:main
+rd	main.F90	/^   real               :: rd=/;"	v	program:main
+residuals	m_residuals.F90	/^subroutine residuals(/;"	s	module:m_residuals
+rh	main.F90	/^   real               :: rh=/;"	v	program:main
+robs	main.F90	/^   real               :: robs=/;"	v	program:main
+tecsol	m_tecsol.F90	/^subroutine tecsol(/;"	s	module:m_tecsol
+truncation	main.F90	/^   real               :: truncation=/;"	v	program:main
+var	main.F90	/^   real var(/;"	v	program:main

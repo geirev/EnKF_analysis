@@ -36,7 +36,7 @@ program main
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
 
 ! Model ensemble 
-   integer, parameter :: nrens=1000                 ! ensemble size
+   integer, parameter :: nrens=2000                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing
@@ -86,16 +86,18 @@ program main
 ! perturbation is a smooth pseudo random field drawn from  N(0,1,rh).
    call pseudo1D(ana,nx,1,rh,dx,nx)
    ana=ana+const
-   ave(:,1)=ana(:)
-   var(:,1)=0.0
+   ic=1 ! Truth
+   ave(:,ic)=ana(:)
+   var(:,ic)=0.0
    print '(a)','main: ana ok'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! First guess solution is a random perturbation from N(0,1,rh) added to the analytical truth
    call pseudo1D(fg,nx,1,rh,dx,nx)
-   fg=(fg + ana-const)/sqrt(2.0) +  const !+ana    
-   ave(:,2)=fg(:)
-   var(:,2)=inivar
+   fg=(fg + ana-const)/sqrt(2.0) +  const 
+   ic=2 ! first guess
+   ave(:,ic)=fg(:)
+   var(:,ic)=inivar
    print '(a)','main: fg ok'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -114,8 +116,9 @@ program main
    do j=1,nrens
       mem0(:,j)=fg(:) + sqrt(inivar)*mem0(:,j)
    enddo
-   call ensmean(mem0,ave(1,3),nx,nrens)
-   call ensvar(mem0,ave(1,3),var(1,3),nx,nrens)
+   ic=3 ! Prior (should be equal to fg)
+   call ensmean(mem0,ave(1,ic),nx,nrens)
+   call ensvar(mem0,ave(1,ic),var(1,ic),nx,nrens)
    print '(a)','main: ensemble ok'
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -125,9 +128,9 @@ program main
 ! Stochastic EnKF 
    do i=0,3
       mode_analysis=10+i
-      ic=4+i
+      ic=ic+1
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-      print '(a,i2,a,i2)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic
+      print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
       mem=mem0
       call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
                &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
@@ -139,9 +142,9 @@ program main
 ! SQRT EnKF
    do i=1,3
       mode_analysis=20+i
-      ic=7+i
+      ic=ic+1
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-      print '(a,i2,a,i2)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic
+      print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
       mem=mem0
       call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
                &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&

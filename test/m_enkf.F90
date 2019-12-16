@@ -36,6 +36,8 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
    real,    intent(inout) :: E0(nrobs,nrens)   ! meas pert use to comapare between schemes
 
+   character(len=2) cmode
+   real, allocatable :: Rsamp(:,:)
    real, allocatable :: R(:,:)
    real, allocatable :: E(:,:)
    real, allocatable :: D(:,:) 
@@ -126,6 +128,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    allocate(R(nrobs,nrobs))
+   allocate(Rsamp(nrobs,nrobs))
    R=0.0
    if (mode_analysis==11 .or. mode_analysis==21) then
       print '(a,a)','       enkf: Exact R using covariance model: ',trim(covmodel)
@@ -145,6 +148,15 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
       case default
          print '(a,a)','       enkf: covmodel is invalid : ',trim(covmodel)
       end select
+
+      Rsamp=matmul(E,transpose(E))/float(nrens-1)
+      write(cmode,'(i2.2)')mode_analysis
+      open(10,file='Rtest'//cmode//'.dat')
+         do i=1,nrobs
+            print *,i
+            write(10,'(i5,2g14.5)')i,R(i,25),Rsamp(i,25)
+         enddo
+      close(10)
    else
       print '(a,a)','       enkf: lowrank R using covariance model: ',trim(covmodel)
       R=matmul(E,transpose(E))/float(nrens-1)
