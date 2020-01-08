@@ -153,7 +153,6 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
       write(cmode,'(i2.2)')mode_analysis
       open(10,file='Rtest'//cmode//'.dat')
          do i=1,nrobs
-            print *,i
             write(10,'(i5,2g14.5)')i,R(i,25),Rsamp(i,25)
          enddo
       close(10)

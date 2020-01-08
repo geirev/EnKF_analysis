@@ -9,6 +9,7 @@ program main
    use m_ensmean
    use m_ensvar
    use m_tecsol
+   use m_dumpensemble
    use m_residuals
    implicit none
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -36,7 +37,7 @@ program main
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
 
 ! Model ensemble 
-   integer, parameter :: nrens=2000                 ! ensemble size
+   integer, parameter :: nrens=100                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing
@@ -137,6 +138,9 @@ program main
                &inflate,infmult,local,robs,obstreshold,E0)
       call ensmean(mem,ave(1,ic),nx,nrens)
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
+      call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
+
+
    enddo
 
 ! SQRT EnKF
@@ -151,6 +155,7 @@ program main
                &inflate,infmult,local,robs,obstreshold,E0)
       call ensmean(mem,ave(1,ic),nx,nrens)
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
+      call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
    enddo
    print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 
