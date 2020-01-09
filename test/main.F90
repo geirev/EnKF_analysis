@@ -41,7 +41,7 @@ program main
    integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble 
-   integer, parameter :: nrens=100                 ! ensemble size
+   integer, parameter :: nrens=2000                ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing
@@ -145,8 +145,14 @@ program main
    print *
 
 ! Stochastic EnKF 
-   do i=0,3
+   do i=0,4
       mode_analysis=10+i
+      if (i==4) then
+         E0(1,1)=0.0 ! used in EnKF to only resample E0 the first time enkf is called
+         covmodel='diagonal'
+         mode_analysis=11
+      endif
+
       ic=ic+1
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
       print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
@@ -159,11 +165,15 @@ program main
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
       call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
 
+      if (i==4) then
+         covmodel='gaussian'
+      endif
+
 
    enddo
 
 ! SQRT EnKF
-   do i=1,3
+   do i=2,3
       mode_analysis=20+i
       ic=ic+1
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
