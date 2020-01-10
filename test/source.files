@@ -5,7 +5,7 @@ MODULES = \
 	m_ensvar.F90\
 	m_getD.F90\
 	m_measurements.F90\
-	m_obs_pert.F90\
+	m_obspert.F90\
 	mod_dimensions.F90\
 	m_residuals.F90\
 	m_tecsol.F90

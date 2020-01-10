@@ -1,15 +1,14 @@
 module m_enkf
 contains
 subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,covmodel,dx,rh,rd,&
-               &lrandrot,lsymsqrt,&
-               &inflate, infmult,&
-               &local,robs, obstreshold,E0)
+               &lrandrot,lsymsqrt,inflate,infmult,local,robs,obstreshold,E,ne)
 
-   use m_obs_pert
    use m_getD
+   use m_obspert
    implicit none
    integer, intent(in) :: nx
    integer, intent(in) :: nrens
+   integer, intent(in) :: ne
    integer, intent(in) :: nrobs
    integer, intent(in) :: mode_analysis
 
@@ -34,17 +33,17 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    real,    intent(in) :: rh
    real,    intent(in) :: rd
 
-   real,    intent(inout) :: E0(nrobs,nrens)   ! meas pert use to comapare between schemes
+   real,    intent(inout) :: E(nrobs,nrens*ne)   
 
-   character(len=2) cmode
-   real, allocatable :: Rsamp(:,:)
+!   character(len=2) cmode
+!   real, allocatable :: Rsamp(:,:)
    real, allocatable :: R(:,:)
-   real, allocatable :: E(:,:)
    real, allocatable :: D(:,:) 
    real, allocatable :: S(:,:)
    real, allocatable :: meanS(:)
    real, allocatable :: innovation(:)
    real, allocatable :: scaling(:)
+   real, allocatable :: ES(:,:)
 
    integer iens,m,i,j
    logical :: lupdate_randrot=.true.
@@ -59,11 +58,8 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    real, allocatable, dimension(:,:)   :: submem
    real, allocatable :: subinnovation(:)
    real :: start, finish
-
-
 ! End Local analysis variables
 
-   allocate(E(nrobs,nrens))
    allocate(D(nrobs,nrens))
    allocate(S(nrobs,nrens))
    allocate(meanS(nrobs))
@@ -76,25 +72,6 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
          S(m,iens)      =  mem(obspos(m),iens)
       enddo
    enddo
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Construct observation perturbations E
-   if (E0(1,1) == 0.0 ) then
-      print '(a)','       enkf: sampling measurement pert into E0'
-      call obs_pert(E,nrens,nrobs,.true.,dx,rh,covmodel,obspos)
-      E0=E
-   else
-      print '(a)','       enkf: Reusing previous E stored in E0'
-      E=E0  ! use the same E for the different experiments
-   endif
-
-! Introduce correct variances
-   do iens=1,nrens
-      do m=1,nrobs
-         E(m,iens)=sqrt(obsvar)*E(m,iens)
-      enddo
-   enddo
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Construct ensemble of measurements D=d+E
@@ -128,7 +105,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    allocate(R(nrobs,nrobs))
-   allocate(Rsamp(nrobs,nrobs))
+!   allocate(Rsamp(nrobs,nrobs))
    R=0.0
    if (mode_analysis==11 .or. mode_analysis==21) then
       print '(a,a)','       enkf: Exact R using covariance model: ',trim(covmodel)
@@ -145,20 +122,28 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
             R(i,j)=obsvar*exp(-dist**2/rd**2)
          enddo
          enddo
+         allocate(ES(nrobs,10000))
+         print '(a)','main: sampling measurement pert into ES(nrobs,2000)'
+         call obspert(ES,10000,nrobs,.true.,dx,rd,covmodel,obspos)
+         ES(:,:)=sqrt(obsvar)*ES(:,:)
+         R=matmul(ES,transpose(ES))/real(10000-1)
+         deallocate(ES)
       case default
          print '(a,a)','       enkf: covmodel is invalid : ',trim(covmodel)
       end select
 
-      Rsamp=matmul(E,transpose(E))/float(nrens-1)
-      write(cmode,'(i2.2)')mode_analysis
-      open(10,file='Rtest'//cmode//'.dat')
-         do i=1,nrobs
-            write(10,'(i5,2g14.5)')i,R(i,25),Rsamp(i,25)
-         enddo
-      close(10)
+!      Rsamp=matmul(E,transpose(E))/float(nrens-1)
+!      write(cmode,'(i2.2)')mode_analysis
+!      open(10,file='Rtest'//cmode//'.dat')
+!         do i=1,nrobs
+!            write(10,'(i5,2g14.5)')i,R(i,25),Rsamp(i,25)
+!         enddo
+!      close(10)
+!      deallocate(rsamp)
    else
-      print '(a,a)','       enkf: lowrank R using covariance model: ',trim(covmodel)
-      R=matmul(E,transpose(E))/float(nrens-1)
+      print '(a,a)',   '       enkf: lowrank R using covariance model: ',trim(covmodel)
+      print '(a,i6,a)','       enkf: lowrank R generated using ',ne*nrens,' realizations'
+      R=matmul(E,transpose(E))/float(nrens*ne-1)
    endif
 
 
@@ -191,7 +176,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    if (local==0) then
       print '(a,i2)','       enkf: calling global analysis with mode: ',mode_analysis
       call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .true., truncation, mode_analysis, &
-                      lrandrot, lupdate_randrot, lsymsqrt, inflate, infmult)
+                      lrandrot, lupdate_randrot, lsymsqrt, inflate, infmult, ne)
 
    else 
       print '(a,i2)','       enkf: calling local analysis with mode: ',mode_analysis,local
@@ -248,13 +233,13 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
          if (nobs > 0) then
             allocate(subD(nobs,nrens))
-            allocate(subE(nobs,nrens))
+            allocate(subE(nobs,nrens*ne))
             allocate(subS(nobs,nrens))
             allocate(subR(nobs,nobs))
             call getD(D,subD,nrobs,nrens,lobs,nobs) ! the innovations to use 
-            call getD(E,subE,nrobs,nrens,lobs,nobs) ! the observation errors to use
+            call getD(E,subE,nrobs,nrens*ne,lobs,nobs) ! the observation errors to use
             call getD(S,subS,nrobs,nrens,lobs,nobs) ! the HA' to use
-            subR=matmul(subE,transpose(subE))/float(nrens)
+            subR=matmul(subE,transpose(subE))/float(nrens*ne)
             allocate(subinnovation(nobs))
             allocate(submem(1,nrens))
             l=0
@@ -274,7 +259,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
                 local_rot=.false.
             endif
             call analysis(submem, subR, subE, subS, subD, subinnovation, 1, nrens, nobs, .false., truncation, mode_analysis, &
-                         lrandrot, local_rot, lsymsqrt, inflate, infmult)
+                         lrandrot, local_rot, lsymsqrt, inflate, infmult, ne)
             mem(i,:)=submem(1,:)
             deallocate(subD, subE, subS, subR, subinnovation, submem)
          endif

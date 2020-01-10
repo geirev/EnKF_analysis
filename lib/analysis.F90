@@ -1,5 +1,5 @@
 subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncation, mode, &
-                    lrandrot,lupdate_randrot,lsymsqrt,inflate, infmult)
+                    lrandrot,lupdate_randrot,lsymsqrt,inflate, infmult, ne)
 ! Computes the analysed ensemble for A using the EnKF or square root schemes.
 
    use mod_anafunc
@@ -11,12 +11,13 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    integer, intent(in) :: ndim             ! dimension of model state
    integer, intent(in) :: nrens            ! number of ensemble members
    integer, intent(in) :: nrobs            ! number of observations
+   integer, intent(in) :: ne               ! factor of increase ensemble size in E
 
    
    real, intent(inout) :: A(ndim,nrens)    ! ensemble matrix
    real, intent(in)    :: R(nrobs,nrobs)   ! matrix holding R (only used if mode=?1 or ?2)
    real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurments innovation d+E-HA 
-   real, intent(in)    :: E(nrobs,nrens)   ! matrix holding perturbations (only used if mode=?3)
+   real, intent(in)    :: E(nrobs,nrens*ne)! matrix holding perturbations (only used if mode=?3)
    real, intent(in)    :: S(nrobs,nrens)   ! matrix holding HA` 
    real, intent(in)    :: innov(nrobs)     ! vector holding d-H*mean(A)
 
@@ -92,7 +93,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
          nrmin=min(nrobs,nrens)
          allocate(Z(nrobs,nrmin))
          allocate(eig(nrmin))
-         call lowrankE(S,E,nrobs,nrens,nrmin,Z,eig,truncation)
+         call lowrankE(S,E,nrobs,nrens,nrmin,Z,eig,truncation,ne)
 
       case default
          print *,'error analysis: Unknown mode: ',mode

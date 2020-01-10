@@ -8,6 +8,7 @@ program main
    use m_measurements
    use m_ensmean
    use m_ensvar
+   use m_obspert
    use m_tecsol
    use m_dumpensemble
    use m_residuals
@@ -35,6 +36,7 @@ program main
    real               :: obsvar=0.25               ! Measurement variance
    character(len=8  ) :: covmodel='gaussian'       ! diagonal or gaussian
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
+   integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble 
    integer, parameter :: nrens=100                 ! ensemble size
@@ -45,7 +47,7 @@ program main
 
 ! Options
    logical            :: lsymsqrt=.true.           ! Always use Sakovs symmetrical square root rather than one-sided
-   logical            :: lrandrot=.true.           ! Introduce a mean-preserving random rotation in SQRT schemes
+   logical            :: lrandrot=.false.           ! Introduce a mean-preserving random rotation in SQRT schemes
    real               :: truncation=1.00           ! SVD truncation in inversion
 
 ! Inflation
@@ -69,7 +71,8 @@ program main
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    real mem(nx,nrens)      ! Work ensemble
    real mem0(nx,nrens)     ! Initial ensemble
-   real E0(nrobs,nrens)    ! A common matrix of measurment perts
+   real E0(nrobs,nrens*ne) ! A common matrix of measurment perts
+   real E(nrobs,nrens*ne)  ! measurement pert
    real ana(nx)            ! analytical solution
    real fg(nx)             ! first guess
    real ave(nx,nc)         ! ensemble average
@@ -110,6 +113,14 @@ program main
    call measurements(ana,nx,obs,obspos,nrobs,obsvar,covmodel,rd,dx)
    print '(a)','main: measurements ok'
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Construct observation perturbations E
+   print '(a)','main: sampling measurement pert into E0'
+   call obspert(E0,nrens*ne,nrobs,.true.,dx,rh,covmodel,obspos)
+
+! Introduce correct variances
+   E0(:,:)=sqrt(obsvar)*E0(:,:)
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Initial ensemble is a random perturbation from N(0,inivar,rh) added to the analytical truth
    call pseudo1D(mem0,nx,nrens,rh,dx,nx)
@@ -122,10 +133,6 @@ program main
    call ensvar(mem0,ave(1,ic),var(1,ic),nx,nrens)
    print '(a)','main: ensemble ok'
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Computation of analyses
-   E0(1,1)=0.0 ! used in EnKF to only resample E0 the first time enkf is called
-
 ! Stochastic EnKF 
    do i=0,3
       mode_analysis=10+i
@@ -133,9 +140,10 @@ program main
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
       print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
       mem=mem0
+      E=E0
       call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
                &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
-               &inflate,infmult,local,robs,obstreshold,E0)
+               &inflate,infmult,local,robs,obstreshold,E,ne)
       call ensmean(mem,ave(1,ic),nx,nrens)
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
       call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
@@ -150,9 +158,10 @@ program main
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
       print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
       mem=mem0
+      E=E0
       call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
                &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
-               &inflate,infmult,local,robs,obstreshold,E0)
+               &inflate,infmult,local,robs,obstreshold,E,ne)
       call ensmean(mem,ave(1,ic),nx,nrens)
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
       call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)

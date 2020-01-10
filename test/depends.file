@@ -5,6 +5,7 @@ main.o:      m_ensmean.o
 main.o:      m_ensvar.o
 main.o:      m_fixsample1D.o
 main.o:      m_measurements.o
+main.o:      m_obspert.o
 main.o:      mod_dimensions.o
 main.o:      MODEL.CPP
 main.o:      m_pseudo1D.o
@@ -15,7 +16,6 @@ m_dumpensemble.o:      makefile
 m_dumpensemble.o:      MODEL.CPP
 m_enkf.o:      makefile
 m_enkf.o:      m_getD.o
-m_enkf.o:      m_obs_pert.o
 m_enkf.o:      MODEL.CPP
 m_ensmean.o:      makefile
 m_ensmean.o:      MODEL.CPP
@@ -28,13 +28,13 @@ m_measurements.o:      MODEL.CPP
 m_measurements.o:      m_pseudo1D.o
 m_measurements.o:      m_random.o
 m_measurements.o:      m_sample1D.o
-m_obs_pert.o:      makefile
-m_obs_pert.o:      m_fixsample1D.o
-m_obs_pert.o:      mod_dimensions.o
-m_obs_pert.o:      MODEL.CPP
-m_obs_pert.o:      m_pseudo1D.o
-m_obs_pert.o:      m_random.o
-m_obs_pert.o:      m_randrot.o
+m_obspert.o:      makefile
+m_obspert.o:      m_fixsample1D.o
+m_obspert.o:      mod_dimensions.o
+m_obspert.o:      MODEL.CPP
+m_obspert.o:      m_pseudo1D.o
+m_obspert.o:      m_random.o
+m_obspert.o:      m_randrot.o
 mod_dimensions.o:      makefile
 mod_dimensions.o:      MODEL.CPP
 m_residuals.o:      makefile

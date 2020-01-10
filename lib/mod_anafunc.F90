@@ -1,19 +1,20 @@
 module mod_anafunc
 contains
 
-subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,truncation)
+subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,truncation,ne)
    implicit none
    integer, intent(in)  :: nrobs
    integer, intent(in)  :: nrens
    integer, intent(in)  :: nrmin
+   integer, intent(in)  :: ne
    real,    intent(in)  :: S(nrobs,nrens)
-   real,    intent(in)  :: E(nrobs,nrens)
+   real,    intent(in)  :: E(nrobs,nrens*ne)
    real,    intent(out) :: W(nrobs,nrmin)
    real,    intent(out) :: eig(nrmin)
    real,    intent(in)  :: truncation
 
    real U0(nrobs,nrmin),sig0(nrmin)
-   real X0(nrmin,nrens)
+   real X0(nrmin,nrens*ne)
    integer i,j
 
    real U1(nrmin,nrmin),VT1(1,1)
@@ -28,11 +29,11 @@ subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,truncation)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Compute X0=sig0^{*T} U0^T E 
 
-! X0= U0^T R
-   call dgemm('t','n',nrmin,nrens,nrobs, 1.0,U0,nrobs, E,nrobs, 0.0,X0,nrmin)
+! X0= U0^T E
+   call dgemm('t','n',nrmin,nrens*ne,nrobs, 1.0/sqrt(real(ne)),U0,nrobs, E,nrobs, 0.0,X0,nrmin)
 
 
-   do j=1,nrens
+   do j=1,nrens*ne
    do i=1,nrmin
       X0(i,j)=sig0(i)*X0(i,j)
    enddo
@@ -40,12 +41,12 @@ subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,truncation)
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Compute singular value decomposition  of X0(nrmin,nrens)
-   lwork=2*max(3*nrens+nrobs,5*nrens)
+! Compute singular value decomposition  of X0(nrmin,nrens*ne)
+   lwork=2*max(3*nrens*ne+nrobs,5*nrens*ne)
    allocate(work(lwork))
    eig=0.0
 
-   call dgesvd('S', 'N', nrmin, nrens, X0, nrmin, eig, U1, nrmin, VT1, 1, work, lwork, ierr)
+   call dgesvd('S', 'N', nrmin, nrens*ne, X0, nrmin, eig, U1, nrmin, VT1, 1, work, lwork, ierr)
    deallocate(work)
    if (ierr /= 0) then
       print *,'mod_anafunc (lowrankE): ierr from call dgesvd 1= ',ierr; stop
