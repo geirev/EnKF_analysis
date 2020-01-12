@@ -37,7 +37,7 @@ program main
    integer, parameter :: nrobs=50                  ! Number of measurements
    real               :: obsvar=0.25               ! Measurement variance
    character(len=8  ) :: covmodel='gaussian'       ! diagonal or gaussian
-   real               :: rd=20.0                   ! Horizontal correlation of observation errors in Gaussian case
+   real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
    integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble 
@@ -50,7 +50,7 @@ program main
 ! Options
    logical            :: lsymsqrt=.true.           ! Always use Sakovs symmetrical square root rather than one-sided
    logical            :: lrandrot=.false.           ! Introduce a mean-preserving random rotation in SQRT schemes
-   real               :: truncation=1.00           ! SVD truncation in inversion
+   real               :: truncation=0.99           ! SVD truncation in inversion
 
 ! Inflation
    integer            :: inflate=0                 ! Inflation(0=off, 1=multiplicative, 2=adaptive according to Evensen 2009)
@@ -148,9 +148,11 @@ program main
    do i=0,4
       mode_analysis=10+i
       if (i==4) then
+         mode_analysis=11
          E0(1,1)=0.0 ! used in EnKF to only resample E0 the first time enkf is called
          covmodel='diagonal'
-         mode_analysis=11
+         call obspert(E0,nrens*ne,nrobs,.true.,dx,rd,covmodel,obspos)
+         E0(:,:)=sqrt(obsvar)*E0(:,:)
       endif
 
       ic=ic+1
