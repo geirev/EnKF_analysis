@@ -53,7 +53,8 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    logical lobs(nrobs)           ! which measurements are active
    integer nobs
    logical local_rot
-   real corr(nrobs),stdA,aveA,stdS,dist
+   real corr(nrobs),stdA,aveA,stdS
+!   real dist
    real, allocatable, dimension(:,:) :: subS,subE,subD, subR
    real, allocatable, dimension(:,:)   :: submem
    real, allocatable :: subinnovation(:)
@@ -115,13 +116,13 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
             R(m,m)=obsvar
          enddo
       case ('gaussian')
-         do i=1,nrobs
-         do j=1,nrobs
-            dist=abs(obspos(i)-obspos(j))
-            if (dist > real(nx)/2.0) dist = real(nx) - dist
-            R(i,j)=obsvar*exp(-dist**2/rd**2)
-         enddo
-         enddo
+!         do i=1,nrobs
+!         do j=1,nrobs
+!            dist=abs(obspos(i)-obspos(j))
+!            if (dist > real(nx)/2.0) dist = real(nx) - dist
+!            R(i,j)=obsvar*exp(-dist**2/rd**2)
+!         enddo
+!         enddo
          allocate(ES(nrobs,10000))
          print '(a)','main: sampling measurement pert into ES(nrobs,2000)'
          call obspert(ES,10000,nrobs,.true.,dx,rd,covmodel,obspos)
@@ -132,14 +133,6 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
          print '(a,a)','       enkf: covmodel is invalid : ',trim(covmodel)
       end select
 
-!      Rsamp=matmul(E,transpose(E))/float(nrens-1)
-!      write(cmode,'(i2.2)')mode_analysis
-!      open(10,file='Rtest'//cmode//'.dat')
-!         do i=1,nrobs
-!            write(10,'(i5,2g14.5)')i,R(i,25),Rsamp(i,25)
-!         enddo
-!      close(10)
-!      deallocate(rsamp)
    else
       print '(a,a)',   '       enkf: lowrank R using covariance model: ',trim(covmodel)
       print '(a,i6,a)','       enkf: lowrank R generated using ',ne*nrens,' realizations'
