@@ -1,5 +1,60 @@
 module m_enkf
 contains
+integer function printlocal(lobs,nrobs,nobs)
+   integer, intent(in) :: nrobs
+   integer, intent(in) :: nobs
+   logical, intent(in) :: lobs(nrobs)
+   integer m
+   write(*,'(a,i4)',advance='no')'localization:',nobs
+   do m=1,nrobs
+      if (lobs(m)) write(*,'(tr1,i4)',advance='no')m
+   enddo 
+   write(*,*)  
+   printlocal=1
+end function
+
+real function measerrinf(cutoff,corr,inf,mininf)
+   real, intent(in) :: cutoff
+   real, intent(in) :: corr
+   real, intent(in) :: mininf
+   integer, intent(in) :: inf
+   real, parameter :: pi=3.1415927
+   real a,b,c,fx
+   c=sqrt(sqrt(cutoff))
+   a=-c/(1.0-c)
+   b=1.0/(1.0-c)
+   if (abs(corr) .le. cutoff) then
+      fx=0.0
+      measerrinf=0.0
+   else
+      select case (inf)
+      case(0)
+         measerrinf=1.0
+      case(1)
+         c=cutoff
+         a=-c/(1.0-c)
+         b=1.0/(1.0-c)
+         fx=0.5-0.5*cos((a+b*abs(corr))*pi)
+         measerrinf=1.0/(fx+0.001)
+      case(2)
+         c=sqrt(cutoff)
+         a=-c/(1.0-c)
+         b=1.0/(1.0-c)
+         fx=0.5-0.5*cos((a+b*sqrt(abs(corr)))*pi)
+         measerrinf=1.0/(fx+0.001)
+      case(3)
+         c=sqrt(sqrt(cutoff))
+         a=-c/(1.0-c)
+         b=1.0/(1.0-c)
+         fx=0.5-0.5*cos((a+b*sqrt(sqrt(abs(corr))))*pi)
+         measerrinf=1.0/(fx+0.001)
+      case default
+         print *,'measerrinf: not define inf=',inf 
+      end select
+      measerrinf=min(mininf,measerrinf)
+   endif
+end function
+
 subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,covmodel,dx,rh,rd,&
                &lrandrot,lsymsqrt,inflate,infmult,local,robs,obstreshold,E,ne)
 
@@ -34,6 +89,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    real,    intent(in) :: rd
 
    real,    intent(inout) :: E(nrobs,nrens*ne)   
+   integer iprt
 
 !   character(len=2) cmode
 !   real, allocatable :: Rsamp(:,:)
@@ -58,6 +114,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    real, allocatable, dimension(:,:) :: subS,subE,subD, subR
    real, allocatable, dimension(:,:)   :: submem
    real, allocatable :: subinnovation(:)
+   real, allocatable :: errinf(:)
    real :: start, finish
 ! End Local analysis variables
 
@@ -65,6 +122,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    allocate(S(nrobs,nrens))
    allocate(meanS(nrobs))
    allocate(scaling(nrobs))
+   allocate(errinf(nrobs))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Observe ensemble to construct the matrix S=HA
@@ -219,8 +277,11 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
                if (abs(corr(m)) > obstreshold) then
                   lobs(m)=.true.
                   nobs=nobs+1
+                  errinf(nobs)=measerrinf(obstreshold,corr(m),0,10.0)
+            !      print *,'errinf:',m,nobs,corr(m),errinf(nobs)
                endif
             enddo
+            iprt=printlocal(lobs,nrobs,nobs)
          endif
 
 
@@ -231,8 +292,11 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
             allocate(subR(nobs,nobs))
             call getD(D,subD,nrobs,nrens,lobs,nobs) ! the innovations to use 
             call getD(E,subE,nrobs,nrens*ne,lobs,nobs) ! the observation errors to use
-            call getD(S,subS,nrobs,nrens,lobs,nobs) ! the HA' to use
             subR=matmul(subE,transpose(subE))/float(nrens*ne)
+            do m=1,nobs
+               subE(m,:)=errinf(m)*subE(m,:)
+            enddo
+            call getD(S,subS,nrobs,nrens,lobs,nobs) ! the HA' to use
             allocate(subinnovation(nobs))
             allocate(submem(1,nrens))
             l=0

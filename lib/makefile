@@ -1,5 +1,6 @@
 BUILD = ../../EnKF_advection/build
-BUILD = ../../Sampling/build
+BUILD = ../../EnKF_sampling/build
+BUILD = ../../EnKF_seir/build
 BUILD = ../build
 VPATH = .:RCS:$(BUILD)
 

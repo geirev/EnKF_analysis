@@ -166,8 +166,8 @@ logical ex
          exit
       endif
    enddo
-   write(*,'(2(a,i5))')      '   analysis: Number of dominant eigenvalues: ',nrsigma,' of ',nrobs
-   write(*,'(2(a,g13.4),a)') '   analysis: Share (and truncation)        : ',sigsum1/sigsum,' (',truncation,')'
+!   write(*,'(2(a,i5))')      '   analysis: Number of dominant eigenvalues: ',nrsigma,' of ',nrobs
+!   write(*,'(2(a,g13.4),a)') '   analysis: Share (and truncation)        : ',sigsum1/sigsum,' (',truncation,')'
 
 
 end subroutine
@@ -543,7 +543,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
       endif
    enddo
 
-   write(*,'(a,i5,g13.5)') '   analysis: dominant singular values and share ',nrsigma,sigsum1/sigsum
+!   write(*,'(a,i5,g13.5)') '   analysis: dominant singular values and share ',nrsigma,sigsum1/sigsum
 !   write(*,'(5g11.3)')sig0
 
    do i=1,nrsigma

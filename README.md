@@ -23,18 +23,27 @@ These routines are used to verify some basic properties of the different analysi
 well as studying their numerical behaviour.
 
 Installation:
+```
+git clone git@github.com:geirev/EnKF_analysis.git
+cd EnKF_analysis/lib
+make
+```
 
-    cd lib; make
-
-To run testEnKF:
-
-    git clone EnKF_sampling
-    
-    change build in EnKF_sampling/lib/makefile to point to EnKF_analysis/build
-    
-    cd test; make
-    
-    cd build; testEnKF
+To run testEnKF you need the sampling routines
+```bash
+git clone git@github.com:geirev/EnKF_sampling.git
+```
+Change build in EnKF_sampling/lib/makefile to point to EnKF_analysis/build and compile sampling library.
+```bash
+cd EnKF_sampling/lib
+make
+```
+Then compile and run the test program
+```bash
+cd EnKF_analysis/test
+make
+../build/testEnKF
+```
 
 Note that for the test made here, both lib and test files are compiled in the same build catalog. Thus,
 as long as lib is compiled first, all the library module files are available for the test program.

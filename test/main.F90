@@ -24,7 +24,7 @@ program main
                                                    ! 21 SQRT EnKF, Subspace inversion of        (SS'+R)
                                                    ! 22 SQRT EnKF, Subspace inversion of        (SS'+(N-1)Re)        Re=EE'
                                                    ! 23 SQRT EnKF, Subspace inversion of        (SS'+EE')
-! Main tests of consistency between schemes: 
+! Main "tests" of consistency between schemes: 
 ! nrobs < nrens, truncation=1.00, covmodel=diagonal, lsymsqrt=true, lrandrot=true, inflation=0, localization=0
 !   ==> 10, 11, 21 gives exactly same solution for the mean (all uses exact diagonal R)
 !   ==> 12, 13, 22, 23 gives exactly same solution for the mean (all uses ensemble R)
@@ -37,7 +37,7 @@ program main
    integer, parameter :: nrobs=50                  ! Number of measurements
    real               :: obsvar=0.25               ! Measurement variance
    character(len=8  ) :: covmodel='gaussian'       ! diagonal or gaussian
-   real               :: rd=20.0                   ! Horizontal correlation of observation errors in Gaussian case
+   real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
    integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble 
@@ -50,7 +50,7 @@ program main
 ! Options
    logical            :: lsymsqrt=.true.           ! Always use Sakovs symmetrical square root rather than one-sided
    logical            :: lrandrot=.false.           ! Introduce a mean-preserving random rotation in SQRT schemes
-   real               :: truncation=1.00           ! SVD truncation in inversion
+   real               :: truncation=0.99           ! SVD truncation in inversion
 
 ! Inflation
    integer            :: inflate=0                 ! Inflation(0=off, 1=multiplicative, 2=adaptive according to Evensen 2009)
@@ -58,8 +58,8 @@ program main
 
 ! Localization
    integer            :: local=0                   ! Localization (0=off, 1=distance_based (robs), 2=adaptive(obstreshold))
-   real               :: robs=200                  ! Influence radius for localization
-   real               :: obstreshold=0.0           ! Correlation threshold when adaptive is used
+   real               :: robs=110                   ! Influence radius for localization
+   real               :: obstreshold=0.3           ! Correlation threshold when adaptive is used
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

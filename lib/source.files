@@ -4,7 +4,6 @@ MODULES = \
 	m_mean_preserving_rotation.F90\
 	m_multa.F90\
 	mod_anafunc.F90\
-	m_random.F90\
 	m_randrot.F90
 
 F90FILES = \
