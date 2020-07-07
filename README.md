@@ -24,25 +24,21 @@ well as studying their numerical behaviour.
 
 Installation:
 ```
+git clone git@github.com:geirev/EnKF_sampling.git
 git clone git@github.com:geirev/EnKF_analysis.git
-cd EnKF_analysis/lib
-make
+pushd EnKF_sampling/lib
+make BUILD=../../EnKF_analysis/build
+popd
+pushd EnKF_analysis/lib
+make BUILD=../../EnKF_analysis/build
+popd
 ```
 
-To run testEnKF you need the sampling routines
-```bash
-git clone git@github.com:geirev/EnKF_sampling.git
-```
-Change build in EnKF_sampling/lib/makefile to point to EnKF_analysis/build and compile sampling library.
-```bash
-cd EnKF_sampling/lib
-make
-```
 Then compile and run the test program
 ```bash
 cd EnKF_analysis/test
-make
-../build/testEnKF
+make BINDIR=$(HOME)/bin
+testEnKF
 ```
 
 Note that for the test made here, both lib and test files are compiled in the same build catalog. Thus,
