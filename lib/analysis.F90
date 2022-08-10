@@ -7,18 +7,18 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    use m_ensmean
    use m_ensvar
    implicit none
-   
+
    integer, intent(in) :: ndim             ! dimension of model state
    integer, intent(in) :: nrens            ! number of ensemble members
    integer, intent(in) :: nrobs            ! number of observations
    integer, intent(in) :: ne               ! factor of increase ensemble size in E
 
-   
+
    real, intent(inout) :: A(ndim,nrens)    ! ensemble matrix
    real, intent(in)    :: R(nrobs,nrobs)   ! matrix holding R (only used if mode=?1 or ?2)
-   real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurments innovation d+E-HA 
+   real, intent(in)    :: D(nrobs,nrens)   ! matrix holding perturbed measurments innovation d+E-HA
    real, intent(in)    :: E(nrobs,nrens*ne)! matrix holding perturbations (only used if mode=?3)
-   real, intent(in)    :: S(nrobs,nrens)   ! matrix holding HA` 
+   real, intent(in)    :: S(nrobs,nrens)   ! matrix holding HA`
    real, intent(in)    :: innov(nrobs)     ! vector holding d-H*mean(A)
 
    logical, intent(in) :: verbose          ! Printing some diagnostic output
@@ -77,7 +77,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
                             S, nrobs, &
              real(nrens-1), R, nrobs)
 
-!        Compute eigenvalue decomposition of R -> Z*eig*Z` 
+!        Compute eigenvalue decomposition of R -> Z*eig*Z`
          allocate(Z(nrobs,nrobs))
          allocate(eig(nrobs))
          call eigC(R,nrobs,Z,eig)

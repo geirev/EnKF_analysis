@@ -34,14 +34,14 @@ program main
 
 
 ! Model for measurements and errors
-   integer, parameter :: nrobs=50                  ! Number of measurements
+   integer, parameter :: nrobs=200                 ! Number of measurements
    real               :: obsvar=0.25               ! Measurement variance
-   character(len=8  ) :: covmodel='diagonal'       ! diagonal or gaussian
+   character(len=8  ) :: covmodel='gaussian'       ! diagonal or gaussian
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
-   integer, parameter :: ne=1                      ! scaling size of E used in the analysis scheme R=EE'
+   integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble 
-   integer, parameter :: nrens=2000                ! ensemble size
+   integer, parameter :: nrens=100                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing

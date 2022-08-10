@@ -28,7 +28,6 @@ m_measurements.o:      makefile
 m_measurements.o:      MODEL.CPP
 m_measurements.o:      m_pseudo1D.o
 m_measurements.o:      m_random.o
-m_measurements.o:      m_sample1D.o
 m_obspert.o:      makefile
 m_obspert.o:      m_fixsample1D.o
 m_obspert.o:      mod_dimensions.o

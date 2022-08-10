@@ -1,22 +1,36 @@
-X5sqrt	mod_anafunc.F90	/^subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot/
-analysis	analysis.F90	/^subroutine analysis(A, R, E, S, D, innov, ndim, nr/
-analysis2_EnOI	analysis2_EnOI.F90	/^subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nre/
-dumpX3	mod_anafunc.F90	/^subroutine dumpX3(X3,S,nrobs,nrens)$/
-dumpX5	mod_anafunc.F90	/^subroutine dumpX5(X5,nrens)$/
-eigC	mod_anafunc.F90	/^subroutine eigC(R,nrobs,Z,eig)$/
-eigsign	mod_anafunc.F90	/^subroutine eigsign(eig,nrobs,truncation)$/
-ensmean	m_ensmean.F90	/^subroutine ensmean(A,ave,nx,nrens)$/
-ensvar	m_ensvar.F90	/^subroutine ensvar(A,ave,var,nx,nrens)$/
-genX2	mod_anafunc.F90	/^subroutine genX2(nrens,nrobs,nrmin,S,W,eig,X2)$/
-genX3	mod_anafunc.F90	/^subroutine genX3(nrens,nrobs,nrmin,eig,W,D,X3)$/
-inflateA	mod_anafunc.F90	/^subroutine inflateA(ndim,nrens,A,inflation)$/
-inflationfactor	mod_anafunc.F90	/^subroutine inflationfactor(X5,nrens,inffac)$/
-lowrankCee	mod_anafunc.F90	/^subroutine lowrankCee(B,nrmin,nrobs,nrens,R,U0,sig/
-lowrankCinv	mod_anafunc.F90	/^subroutine lowrankCinv(S,R,nrobs,nrens,nrmin,W,eig/
-lowrankE	mod_anafunc.F90	/^subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,tr/
-meanX5	mod_anafunc.F90	/^subroutine meanX5(nrens,nrobs,nrmin,S,W,eig,innov,/
-mean_preserving_rotation	m_mean_preserving_rotation.F90	/^subroutine mean_preserving_rotation(Up,nrens)$/
-multa	m_multa.F90	/^subroutine multa(A, X, ndim, nrens, iblkmax)$/
-random	m_random.F90	/^subroutine random(work1,n)$/
-randrot	m_randrot.F90	/^subroutine randrot(Q,nrens)$/
-svdS	mod_anafunc.F90	/^subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,trunca/
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+X5sqrt	mod_anafunc.F90	/^subroutine X5sqrt(/;"	s	module:mod_anafunc
+analysis	analysis.F90	/^subroutine analysis(/;"	s
+analysis2_EnOI	analysis2_EnOI.F90	/^subroutine analysis2_EnOI(/;"	s
+dumpX3	mod_anafunc.F90	/^subroutine dumpX3(/;"	s	module:mod_anafunc
+dumpX5	mod_anafunc.F90	/^subroutine dumpX5(/;"	s	module:mod_anafunc
+eigC	mod_anafunc.F90	/^subroutine eigC(/;"	s	module:mod_anafunc
+eigsign	mod_anafunc.F90	/^subroutine eigsign(/;"	s	module:mod_anafunc
+ensmean	m_ensmean.F90	/^subroutine ensmean(/;"	s	module:m_ensmean
+ensvar	m_ensvar.F90	/^subroutine ensvar(/;"	s	module:m_ensvar
+exact_diag_inversion	mod_anafunc.F90	/^subroutine exact_diag_inversion(/;"	s	module:mod_anafunc
+genX2	mod_anafunc.F90	/^subroutine genX2(/;"	s	module:mod_anafunc
+genX3	mod_anafunc.F90	/^subroutine genX3(/;"	s	module:mod_anafunc
+inflateA	mod_anafunc.F90	/^subroutine inflateA(/;"	s	module:mod_anafunc
+inflationfactor	mod_anafunc.F90	/^subroutine inflationfactor(/;"	s	module:mod_anafunc
+lowrankCee	mod_anafunc.F90	/^subroutine lowrankCee(/;"	s	module:mod_anafunc
+lowrankCinv	mod_anafunc.F90	/^subroutine lowrankCinv(/;"	s	module:mod_anafunc
+lowrankE	mod_anafunc.F90	/^subroutine lowrankE(/;"	s	module:mod_anafunc
+m_ensmean	m_ensmean.F90	/^module m_ensmean$/;"	m
+m_ensvar	m_ensvar.F90	/^module m_ensvar$/;"	m
+m_mean_preserving_rotation	m_mean_preserving_rotation.F90	/^module m_mean_preserving_rotation$/;"	m
+m_multa	m_multa.F90	/^module m_multa$/;"	m
+m_random	m_random.F90	/^module m_random$/;"	m
+m_randrot	m_randrot.F90	/^module m_randrot$/;"	m
+meanX5	mod_anafunc.F90	/^subroutine meanX5(/;"	s	module:mod_anafunc
+mean_preserving_rotation	m_mean_preserving_rotation.F90	/^subroutine mean_preserving_rotation(/;"	s	module:m_mean_preserving_rotation
+mod_anafunc	mod_anafunc.F90	/^module mod_anafunc$/;"	m
+multa	m_multa.F90	/^subroutine multa(/;"	s	module:m_multa
+random	m_random.F90	/^subroutine random(/;"	s	module:m_random
+randrot	m_randrot.F90	/^subroutine randrot(/;"	s	module:m_randrot
+svdS	mod_anafunc.F90	/^subroutine svdS(/;"	s	module:mod_anafunc

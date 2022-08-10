@@ -1,5 +1,5 @@
 module m_measurements
-use m_sample1D
+use m_pseudo1D
 contains
 subroutine measurements(ana,nx,obs,obspos,nrobs,obsvar,covmodel,rd,dx)
    use m_pseudo1D
