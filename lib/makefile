@@ -67,10 +67,10 @@ clean:
 new: source depend
 
 source:
-	mksource.sh > source.files
+	../bin/mksource.sh > source.files
 
 depend:
-	mkdepend_linux.pl | sort -u > depends.file
+	../bin/mkdepend_linux.pl | sort -u > depends.file
 
 tags: $(FILES)
 	ctags *.F90
