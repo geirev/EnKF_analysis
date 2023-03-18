@@ -27,6 +27,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
 
    integer, intent(in) :: mode             ! first integer means (EnKF=1, SQRT=2)
                                            ! Second integer is pseudo inversion
+                                           !  0=exact inversion for diagonal R
                                            !  1=eigen value pseudo inversion of SS'+(N-1)R
                                            !  2=SVD subspace pseudo inversion of SS'+(N-1)R
                                            !  3=SVD subspace pseudo inversion of SS'+EE'
