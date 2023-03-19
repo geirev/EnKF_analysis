@@ -6,5 +6,6 @@ F90SOURCE = \
 	m_mean_preserving_rotation.F90\
 	m_multa.F90\
 	mod_anafunc.F90\
+	m_random2.F90\
 	m_randrot.F90
 

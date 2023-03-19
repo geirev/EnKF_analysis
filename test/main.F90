@@ -41,7 +41,7 @@ program main
    integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble
-   integer, parameter :: nrens=100                 ! ensemble size
+   integer, parameter :: nrens=1000                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing
@@ -64,10 +64,10 @@ program main
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Cases run
-   integer, parameter :: nc=10
+   integer, parameter :: nc=11
    character(len=12) :: cc(1:nc)  =(/ 'truth       ','prior       ','prior       ',&
                                      &'10          ','11          ','12          ','13          ',&
-                                     &'21          ','22          ','23          '/)
+                                     &'21          ','22          ','23          ','00          '/)
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -144,7 +144,7 @@ program main
    print '(a)','main: ensemble ok'
    print *
 
-! Stochastic EnKF
+! Stochastic EnKF (10,11,12,13)
    do i=0,3
       mode_analysis=10+i
       ic=ic+1
@@ -162,7 +162,7 @@ program main
 
    enddo
 
-! SQRT EnKF
+! SQRT EnKF (21,22,23)
    do i=1,3
       mode_analysis=20+i
       ic=ic+1
@@ -177,6 +177,19 @@ program main
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
       call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
    enddo
+
+   mode_analysis=0
+   ic=ic+1
+   print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+   print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
+   mem=mem0
+   E=E0
+   call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
+            &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
+            &inflate,infmult,local,robs,obstreshold,E,ne)
+   call ensmean(mem,ave(1,ic),nx,nrens)
+   call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
+   call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
    print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 
 

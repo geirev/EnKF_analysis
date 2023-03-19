@@ -155,7 +155,7 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
       !     A=A+matmul(Reps,X3)
       call dgemm('n','n',ndim,nrens,nrobs,1.0,Reps,ndim,X3,nrobs,1.0,A,ndim)
    else
-      iblkmax=min(ndim,200)
+      iblkmax=min(ndim,2000)
       call multa(A, X5, ndim, nrens, iblkmax )
    endif
 

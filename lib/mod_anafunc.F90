@@ -558,7 +558,7 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
 !         mema=memf(I + (SS'+I)^{-1} S'D)
 !              = memf (I + (S'S + I)^{-1} S' D)
 !              = memf (I + Z L^{-1} Z' S' D)
-!        In this formula S and D are bboth normalized by sqrt(N-1)
+!        In this formula S and D are both normalized by sqrt(N-1)
 !        The eigen value decomposition is of dimension N (rather than m)
    integer, intent(in)   :: nrens
    integer, intent(in)   :: nrobs
@@ -619,7 +619,7 @@ end subroutine
 
 subroutine inflationfactor(X5,nrens,inffac)
    use m_multa
-   use m_random
+   use m_random2
    implicit none
    integer, intent(in) :: nrens
    real, intent(in) :: X5(nrens,nrens)
@@ -632,7 +632,7 @@ subroutine inflationfactor(X5,nrens,inffac)
    real :: std(ndim)
    integer i,j
 
-   call random(verens,ndim*nrens)
+   call random2(verens,ndim*nrens)
 
 
 ! subtract mean to get ensemble of mean=0.0
