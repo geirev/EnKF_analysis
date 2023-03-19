@@ -18,6 +18,7 @@ m_enkf.o:      makefile
 m_enkf.o:      m_getD.o
 m_enkf.o:      m_obspert.o
 m_enkf.o:      MODEL.CPP
+m_enkf.o:      m_preexact.o
 m_ensmean.o:      makefile
 m_ensmean.o:      MODEL.CPP
 m_ensvar.o:      makefile
@@ -28,7 +29,6 @@ m_measurements.o:      makefile
 m_measurements.o:      MODEL.CPP
 m_measurements.o:      m_pseudo1D.o
 m_measurements.o:      m_random.o
-m_measurements.o:      m_sample1D.o
 m_obspert.o:      makefile
 m_obspert.o:      m_fixsample1D.o
 m_obspert.o:      mod_dimensions.o
@@ -38,6 +38,8 @@ m_obspert.o:      m_random.o
 m_obspert.o:      m_randrot.o
 mod_dimensions.o:      makefile
 mod_dimensions.o:      MODEL.CPP
+m_preexact.o:      makefile
+m_preexact.o:      MODEL.CPP
 m_residuals.o:      makefile
 m_residuals.o:      MODEL.CPP
 m_tecsol.o:      makefile

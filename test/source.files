@@ -1,4 +1,5 @@
-MODULES = \
+F90SOURCE = \
+	main.F90\
 	m_dumpensemble.F90\
 	m_enkf.F90\
 	m_ensmean.F90\
@@ -7,9 +8,7 @@ MODULES = \
 	m_measurements.F90\
 	m_obspert.F90\
 	mod_dimensions.F90\
+	m_preexact.F90\
 	m_residuals.F90\
 	m_tecsol.F90
-
-F90FILES = \
-	main.F90
 

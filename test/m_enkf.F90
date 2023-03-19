@@ -8,8 +8,8 @@ integer function printlocal(lobs,nrobs,nobs)
    write(*,'(a,i4)',advance='no')'localization:',nobs
    do m=1,nrobs
       if (lobs(m)) write(*,'(tr1,i4)',advance='no')m
-   enddo 
-   write(*,*)  
+   enddo
+   write(*,*)
    printlocal=1
 end function
 
@@ -49,7 +49,7 @@ real function measerrinf(cutoff,corr,inf,mininf)
          fx=0.5-0.5*cos((a+b*sqrt(sqrt(abs(corr))))*pi)
          measerrinf=1.0/(fx+0.001)
       case default
-         print *,'measerrinf: not define inf=',inf 
+         print *,'measerrinf: not define inf=',inf
       end select
       measerrinf=min(mininf,measerrinf)
    endif
@@ -60,12 +60,13 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
    use m_getD
    use m_obspert
+   use m_preexact
    implicit none
    integer, intent(in) :: nx
    integer, intent(in) :: nrens
    integer, intent(in) :: ne
    integer, intent(in) :: nrobs
-   integer, intent(in) :: mode_analysis
+   integer, intent(inout) :: mode_analysis
 
    real,    intent(inout) :: mem(nx,nrens)
    real,    intent(in) :: obs(nrobs)
@@ -88,13 +89,13 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    real,    intent(in) :: rh
    real,    intent(in) :: rd
 
-   real,    intent(inout) :: E(nrobs,nrens*ne)   
+   real,    intent(inout) :: E(nrobs,nrens*ne)
    integer iprt
 
 !   character(len=2) cmode
 !   real, allocatable :: Rsamp(:,:)
    real, allocatable :: R(:,:)
-   real, allocatable :: D(:,:) 
+   real, allocatable :: D(:,:)
    real, allocatable :: S(:,:)
    real, allocatable :: meanS(:)
    real, allocatable :: innovation(:)
@@ -207,7 +208,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 ! Scaling of matrices
    print '(a)','       enkf: scale matrices'
    do m=1,nrobs
-      scaling(m)=1./sqrt(R(m,m)) 
+      scaling(m)=1./sqrt(R(m,m))
       S(m,:)=scaling(m)*S(m,:)
       E(m,:)=scaling(m)*E(m,:)
       D(m,:)=scaling(m)*D(m,:)
@@ -221,6 +222,11 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    enddo
 
 
+   if (mode_analysis==0) then
+      call preexact()
+      mode_analysis=10
+   endif
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Computing analysis
    call cpu_time(start)
@@ -229,7 +235,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
       call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .true., truncation, mode_analysis, &
                       lrandrot, lupdate_randrot, lsymsqrt, inflate, infmult, ne)
 
-   else 
+   else
       print '(a,i2)','       enkf: calling local analysis with mode: ',mode_analysis,local
       icall=0
       do i=1,nx
@@ -290,7 +296,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
             allocate(subE(nobs,nrens*ne))
             allocate(subS(nobs,nrens))
             allocate(subR(nobs,nobs))
-            call getD(D,subD,nrobs,nrens,lobs,nobs) ! the innovations to use 
+            call getD(D,subD,nrobs,nrens,lobs,nobs) ! the innovations to use
             call getD(E,subE,nrobs,nrens*ne,lobs,nobs) ! the observation errors to use
             subR=matmul(subE,transpose(subE))/float(nrens*ne)
             do m=1,nobs
