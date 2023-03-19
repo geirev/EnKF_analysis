@@ -27,7 +27,7 @@ subroutine lowrankE(S,E,nrobs,nrens,nrmin,W,eig,truncation,ne)
    call  svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Compute X0=sig0^{*T} U0^T E 
+! Compute X0=sig0^{*T} U0^T E
 
 ! X0= U0^T E
    call dgemm('t','n',nrmin,nrens*ne,nrobs, 1.0/sqrt(real(ne)),U0,nrobs, E,nrobs, 0.0,X0,nrmin)
@@ -71,7 +71,7 @@ end subroutine
 
 
 subroutine eigC(R,nrobs,Z,eig)
-! Compute eigenvalue decomposition of R -> Z*eig*Z` 
+! Compute eigenvalue decomposition of R -> Z*eig*Z`
 ! Returns eigenvectors and eigenvalues in ascending order.
    integer, intent(in) :: nrobs
    real, intent(in)    :: R(nrobs,nrobs)
@@ -84,7 +84,7 @@ subroutine eigC(R,nrobs,Z,eig)
 #endif
    real  RR(nrobs,nrobs)
 
-   real fwork(8*nrobs)  
+   real fwork(8*nrobs)
    integer iwork(5*nrobs)
    integer ifail(nrobs)
    real abstol,ddum
@@ -243,7 +243,7 @@ subroutine meanX5(nrens,nrobs,nrmin,S,W,eig,innov,X5)
    real y1(nrmin)
    real y2(nrmin)
    real y3(nrobs)
-   real y4(nrens) 
+   real y4(nrens)
    integer i
 
    if (nrobs==1) then
@@ -253,7 +253,7 @@ subroutine meanX5(nrens,nrobs,nrmin,S,W,eig,innov,X5)
       y4(:)=y3(1)*S(1,:)
    else
       call dgemv('t',nrobs,nrmin,1.0,W,nrobs,innov,1,0.0,y1 ,1)
-      y2=eig*y1  
+      y2=eig*y1
       call dgemv('n',nrobs,nrmin,1.0,W ,nrobs,y2,1,0.0,y3 ,1)
       call dgemv('t',nrobs,nrens,1.0,S ,nrobs,y3,1,0.0,y4 ,1)
    endif
@@ -335,7 +335,7 @@ subroutine X5sqrt(X2,nrobs,nrens,nrmin,X5,lrandrot,lupdate_randrot,mode,lsymsqrt
    enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Multiply  X3* V' = (V*sqrt(I-sigma*sigma) * V' to ensure symmetric sqrt and 
+! Multiply  X3* V' = (V*sqrt(I-sigma*sigma) * V' to ensure symmetric sqrt and
 ! mean preserving rotation.   Sakov paper eq 13
    if (lsymsqrt) then
       call dgemm('n','n',nrens,nrens,nrens,1.0,X3,nrens,VT,nrens,0.0,X33,nrens)
@@ -533,7 +533,7 @@ subroutine svdS(S,nrobs,nrens,nrmin,U0,sig0,truncation)
    sigsum1=0.0
 ! Significant eigenvalues.
    nrsigma=0
-   do i=1,nrmin                       
+   do i=1,nrmin
       if (sigsum1/sigsum < truncation) then
          nrsigma=nrsigma+1
          sigsum1=sigsum1+sig0(i)**2
@@ -555,9 +555,9 @@ end subroutine
 subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
 !        Exact inversion with diagonal R using: S' ( SS' + I )^{-1} == (S'S + I)^(-1) S'
 !        Analysis becomes
-!         mema=memf(I + (SS'+I)^{-1} S'D) 
-!              = memf (I + (S'S + I)^{-1} S' D) 
-!              = memf (I + Z L^{-1} Z' S' D) 
+!         mema=memf(I + (SS'+I)^{-1} S'D)
+!              = memf (I + (S'S + I)^{-1} S' D)
+!              = memf (I + Z L^{-1} Z' S' D)
 !        In this formula S and D are bboth normalized by sqrt(N-1)
 !        The eigen value decomposition is of dimension N (rather than m)
    integer, intent(in)   :: nrens
@@ -656,7 +656,7 @@ subroutine inflationfactor(X5,nrens,inffac)
    enddo
 
    call multa(verens, X5, ndim, nrens, ndim)
-   
+
 ! subtract mean from verens
    do i=1,ndim
       aveverens=sum(verens(i,1:nrens))/real(nrens)
@@ -665,7 +665,7 @@ subroutine inflationfactor(X5,nrens,inffac)
       enddo
    enddo
 
-! compute average variance over all ndim states 
+! compute average variance over all ndim states
    std(:)=0.0
    do j=1,nrens
       do i=1,ndim
@@ -706,4 +706,4 @@ end subroutine
 
 
 end module
-                                                                                                                                                                                                                                                                                                                                                                                                  
+

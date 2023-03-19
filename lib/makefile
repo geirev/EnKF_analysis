@@ -57,12 +57,12 @@ OBJECTS = $(F90SOURCE:.F90=.o) $(F77SOURCE:.F=.o)
 
 all: new $(TARGET) libs
 
-libs: libsampling.a libenkfanalysis.a
+libs: libenkfanalysis.a libsampling.a
 
 libsampling.a:
 	cd ../../EnKF_sampling/lib; make BUILD=../../EnKF_analysis/build
 
-libenkfanalysis.a:
+libenkfanalysis.a: libsampling.a
 	cd ../../EnKF_analysis/lib; make BUILD=../../EnKF_analysis/build
 
 

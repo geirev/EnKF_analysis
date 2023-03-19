@@ -1,15 +1,15 @@
 subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
-! Computes the analysed vector psi for the static ensemble A 
+! Computes the analysed vector psi for the static ensemble A
    use m_multa
    implicit none
    integer, intent(in) :: ndim             ! dimension of model state
    integer, intent(in) :: nrens            ! number of ensemble members
    integer, intent(in) :: nrobs            ! number of observations
-   
+
    real, intent(in) :: A(ndim,nrens)   ! ensemble matrix
    real, intent(inout) :: psi(ndim)       ! state vector (forecast -> vector)
    real, intent(in)    :: D(nrobs)  ! matrix  holding observation innovations
-   real, intent(in)    :: S(nrobs,nrens)  ! matrix holding HA' 
+   real, intent(in)    :: S(nrobs,nrens)  ! matrix holding HA'
    real, intent(inout) :: R(nrobs,nrobs)  ! Error covariance matrix for observations
    logical, intent(in) :: verbose
 
@@ -30,7 +30,7 @@ subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
 !   if(verbose) then
 !            do i=1,nrobs
 !            print *, i,R(i,i)*nrens
-!           enddo 
+!           enddo
 !      endif
    if (nrobs > 1) then
 !      R=float(nrens)*R+matmul(S,transpose(S))
@@ -96,7 +96,7 @@ subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
       allocate (X2(nrobs,1))
 !     X2=X1*D : (nrobs,nrobs)*(nrobs,1)
       call dgemm('n','n',nrobs,1,nrobs,1.0,X1,nrobs,D ,nrobs,0.0,X2,nrobs)
-      deallocate(X1) 
+      deallocate(X1)
 
 !     X3=transpose(transpose(V))*X2  : (nrobs,nnrobs)*(nrobs,1)
        allocate (X3(nrobs,1), stat=ierr)
@@ -115,7 +115,7 @@ subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
 !
    if (2_8*ndim*nrobs < 1_8*nrens*(nrobs+ndim)) then
 !    Code for few observations ( m<nN/(2n-N) )
-!    Representer option 
+!    Representer option
       if (verbose) print * ,'analysis: Representer approach is used'
       allocate (Reps(ndim,nrobs))
 
@@ -161,7 +161,7 @@ subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
       deallocate(I_N)
       deallocate(X4)
       deallocate(X3)
-      
+
 !psi=psi+A*X5    :  (ndim,nrens)*(nrens)=ndim
 !      call dgemm('n','n',ndim,1,nrens,1.0,A,ndim,X5,nrens,1.0,psi,ndim)
       call dgemv('n',ndim,nrens,1.0,A,ndim,X5,1,1.0,psi,1) ! single step operation
@@ -169,6 +169,6 @@ subroutine analysis2_EnOI(A,psi,D, R, S, ndim, nrens, nrobs, verbose)
    deallocate(X5)
    if(verbose) print *,'Analysis, TEM(1) =', psi(target)
 !
-   endif 
+   endif
 
 end subroutine analysis2_EnOI

@@ -13,7 +13,7 @@ subroutine dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
 
    integer :: nn,j,k
    nn=min(nrensmax,nrens)
-   
+
    print '(a,a,i2)','Dumping ensemble:',cc(ic)
    open(10,file='ensemble_'//trim(cc(ic))//'.dat')
       write(10,*)'TITLE = "ensemble"'
