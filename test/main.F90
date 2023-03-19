@@ -18,13 +18,13 @@ program main
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Analysis scheme to use
    integer mode_analysis                           ! 10 Stochastic EnKF, Exact inversion with diagonal R
-                                                   ! 11 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)R) 
+                                                   ! 11 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)R)
                                                    ! 12 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)Re)  Re=EE'
                                                    ! 13 Stochastic EnKF, Subspace inversion of        (SS'+(N-1)EE)
                                                    ! 21 SQRT EnKF, Subspace inversion of        (SS'+R)
                                                    ! 22 SQRT EnKF, Subspace inversion of        (SS'+(N-1)Re)        Re=EE'
                                                    ! 23 SQRT EnKF, Subspace inversion of        (SS'+EE')
-! Main "tests" of consistency between schemes: 
+! Main "tests" of consistency between schemes:
 ! nrobs < nrens, truncation=1.00, covmodel=diagonal, lsymsqrt=true, lrandrot=true, inflation=0, localization=0
 !   ==> 10, 11, 21 gives exactly same solution for the mean (all uses exact diagonal R)
 !   ==> 12, 13, 22, 23 gives exactly same solution for the mean (all uses ensemble R)
@@ -40,7 +40,7 @@ program main
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
    integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
 
-! Model ensemble 
+! Model ensemble
    integer, parameter :: nrens=100                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
@@ -66,7 +66,7 @@ program main
 ! Cases run
    integer, parameter :: nc=10
    character(len=12) :: cc(1:nc)  =(/ 'truth       ','prior       ','prior       ',&
-                                     &'10          ','11          ','12          ','13          ',& 
+                                     &'10          ','11          ','12          ','13          ',&
                                      &'21          ','22          ','23          '/)
 
 
@@ -86,9 +86,9 @@ program main
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    call set_random_seed2   ! New random seed every time
-   
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! The true solution is a perturbation around the value "const" where the 
+! The true solution is a perturbation around the value "const" where the
 ! perturbation is a smooth pseudo random field drawn from  N(0,1,rh).
    print '(a)','main: sampling random truth'
    call pseudo1D(ana,nx,1,rh,dx,nx)
@@ -103,7 +103,7 @@ program main
 ! First guess solution is a random perturbation from N(0,1,rh) added to the analytical truth
    print '(a)','main: generating random first guess'
    call pseudo1D(fg,nx,1,rh,dx,nx)
-   fg=(fg + ana-const)/sqrt(2.0) +  const 
+   fg=(fg + ana-const)/sqrt(2.0) +  const
    ic=2 ! first guess
    ave(:,ic)=fg(:)
    var(:,ic)=inivar
@@ -144,7 +144,7 @@ program main
    print '(a)','main: ensemble ok'
    print *
 
-! Stochastic EnKF 
+! Stochastic EnKF
    do i=0,3
       mode_analysis=10+i
       ic=ic+1

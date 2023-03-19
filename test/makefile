@@ -56,15 +56,15 @@ F77FILES =$(F77SOURCE:.F=.f)
 OBJECTS = $(F90SOURCE:.F90=.o) $(F77SOURCE:.F=.o)
 
 
-all: new $(TARGET) install
+all: libenkfanalysis.a new $(TARGET) install
 
 libs: libsampling.a libenkfanalysis.a
 
 libsampling.a:
-	cd ../../EnKF_sampling/lib; make -f makefile.ge BUILD=../../EnKF_analysis/build
+	cd ../../EnKF_sampling/lib; make BUILD=../../EnKF_analysis/build
 
 libenkfanalysis.a:
-	cd ../../EnKF_analysis/lib; make -f makefile.ge BUILD=../../EnKF_analysis/build
+	cd ../../EnKF_analysis/lib; make BUILD=../../EnKF_analysis/build
 
 $(TARGET): $(INCFILES) $(OBJECTS)
 	@mkdir -p $(BUILD)

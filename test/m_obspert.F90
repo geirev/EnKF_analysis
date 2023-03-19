@@ -21,7 +21,7 @@ subroutine obspert(E,nrens,nrobs,fixsamp,dx,rh,covmodel,obspos)
 
 
    if (trim(covmodel) == 'diagonal') then
-      call random(E,nrobs*nrens)   
+      call random(E,nrobs*nrens)
       if (fixsamp) call fixsample1D(E,nrobs,nrens)
 
    elseif(trim(covmodel) == 'gaussian') then

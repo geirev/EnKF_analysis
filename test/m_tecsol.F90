@@ -10,7 +10,7 @@ subroutine tecsol(ave,var,obs,obspos,nx,nrobs,nc)
    integer, intent(in)   :: obspos(nrobs)
    real,    intent(in)   :: obs(nrobs)
    integer ic,i
-   
+
    print '(a)','Dumping solutions to solutions.dat'
    open(10,file='solutions.dat')
    write(10,*)'TITLE = "Solutions"'

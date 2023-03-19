@@ -21,7 +21,9 @@ mod_anafunc.o:      m_ensmean.o
 mod_anafunc.o:      m_mean_preserving_rotation.o
 mod_anafunc.o:      m_multa.o
 mod_anafunc.o:      MODEL.CPP
-mod_anafunc.o:      m_random.o
+mod_anafunc.o:      m_random2.o
 mod_anafunc.o:      m_randrot.o
+m_random2.o:      makefile
+m_random2.o:      MODEL.CPP
 m_randrot.o:      makefile
 m_randrot.o:      MODEL.CPP

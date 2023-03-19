@@ -4,7 +4,7 @@ subroutine mean_preserving_rotation(Up,nrens)
 ! Generates the mean preserving random rotation for the EnKF SQRT algorithm
 ! using the algorithm from Sakov 2006-07.  I.e, generate rotation Up suceh that
 ! Up*Up^T=I and Up*1=1 (all rows have sum = 1)  see eq 17.
-! From eq 18,    Up=B * Upb * B^T 
+! From eq 18,    Up=B * Upb * B^T
 ! B is a random orthonormal basis with the elements in the first column equals 1/sqrt(nrens)
 ! Upb = | 1  0 |
 !       | 0  U |
@@ -111,5 +111,5 @@ integer j,k
 !   stop
 
 
-end subroutine 
+end subroutine
 end module
