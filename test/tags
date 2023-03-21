@@ -12,13 +12,19 @@ ave	main.F90	/^   real ave(/;"	v	program:main
 cc	main.F90	/^   character(len=12) :: cc(/;"	v	program:main
 const	main.F90	/^   real               :: const=/;"	v	program:main
 covmodel	main.F90	/^   character(len=8  ) :: covmodel=/;"	v	program:main
+cpu0	m_wtime.F90	/^   real start,finish,cpu0,/;"	v	module:m_wtime
+cpu1	m_wtime.F90	/^   real start,finish,cpu0,cpu1$/;"	v	module:m_wtime
+cputimeA	m_wtime.F90	/^subroutine cputimeA(/;"	s	module:m_wtime
+cputimeB	m_wtime.F90	/^subroutine cputimeB(/;"	s	module:m_wtime
 dobs	main.F90	/^   real dobs$/;"	v	program:main
 dumpensemble	m_dumpensemble.F90	/^subroutine dumpensemble(/;"	s	module:m_dumpensemble
 dx	main.F90	/^   real               :: dx=/;"	v	program:main
 enkf	m_enkf.F90	/^subroutine enkf(/;"	s	module:m_enkf
 ensmean	m_ensmean.F90	/^subroutine ensmean(/;"	s	module:m_ensmean
 ensvar	m_ensvar.F90	/^subroutine ensvar(/;"	s	module:m_ensvar
+experiments	main.F90	/^   integer :: experiments(/;"	v	program:main
 fg	main.F90	/^   real fg(/;"	v	program:main
+finish	m_wtime.F90	/^   real start,finish,/;"	v	module:m_wtime
 getD	m_getD.F90	/^subroutine getD(/;"	s	module:m_getD
 i	main.F90	/^   in/;"	v	program:main
 ic	main.F90	/^   integer i,j,m,ic /;"	v	program:main
@@ -40,6 +46,7 @@ m_obspert	m_obspert.F90	/^module m_obspert$/;"	m
 m_preexact	m_preexact.F90	/^module m_preexact$/;"	m
 m_residuals	m_residuals.F90	/^module m_residuals$/;"	m
 m_tecsol	m_tecsol.F90	/^module m_tecsol$/;"	m
+m_wtime	m_wtime.F90	/^module m_wtime$/;"	m
 main	main.F90	/^program main$/;"	p
 measerrinf	m_enkf.F90	/^real function measerrinf(/;"	f	module:m_enkf
 measurements	m_measurements.F90	/^subroutine measurements(/;"	s	module:m_measurements
@@ -63,6 +70,8 @@ rd	main.F90	/^   real               :: rd=/;"	v	program:main
 residuals	m_residuals.F90	/^subroutine residuals(/;"	s	module:m_residuals
 rh	main.F90	/^   real               :: rh=/;"	v	program:main
 robs	main.F90	/^   real               :: robs=/;"	v	program:main
+start	m_wtime.F90	/^   real start,/;"	v	module:m_wtime
 tecsol	m_tecsol.F90	/^subroutine tecsol(/;"	s	module:m_tecsol
 truncation	main.F90	/^   real               :: truncation=/;"	v	program:main
 var	main.F90	/^   real var(/;"	v	program:main
+wtime	m_wtime.F90	/^function wtime /;"	f	module:m_wtime

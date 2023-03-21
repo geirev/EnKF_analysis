@@ -1,6 +1,4 @@
 program main
-
-
 ! Test program for EnKF analysis
    use mod_dimensions
    use m_pseudo1D
@@ -17,16 +15,18 @@ program main
    implicit none
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Analysis scheme to use
-   integer mode_analysis                           ! 10 Stochastic EnKF, Exact inversion with diagonal R
-                                                   ! 11 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)R)
-                                                   ! 12 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)Re)  Re=EE'
-                                                   ! 13 Stochastic EnKF, Subspace inversion of        (SS'+(N-1)EE)
-                                                   ! 21 SQRT EnKF, Subspace inversion of        (SS'+R)
-                                                   ! 22 SQRT EnKF, Subspace inversion of        (SS'+(N-1)Re)        Re=EE'
-                                                   ! 23 SQRT EnKF, Subspace inversion of        (SS'+EE')
+   integer mode_analysis    ! 10 Stochastic EnKF, Exact inversion with diagonal R
+                            ! 11 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)R)
+                            ! 12 Stochastic EnKF, Eigen value decomposition of (SS'+(N-1)Re)  Re=EE'
+                            ! 13 Stochastic EnKF, Subspace inversion of        (SS'+(N-1)EE)
+                            ! 21 SQRT EnKF, Subspace inversion of        (SS'+R)
+                            ! 22 SQRT EnKF, Subspace inversion of        (SS'+(N-1)Re)        Re=EE'
+                            ! 23 SQRT EnKF, Subspace inversion of        (SS'+EE')
+                            ! 00, special case assuming Gaussian measurement errors and preproc and mode 10
+
 ! Main "tests" of consistency between schemes:
 ! nrobs < nrens, truncation=1.00, covmodel=diagonal, lsymsqrt=true, lrandrot=true, inflation=0, localization=0
-!   ==> 10, 11, 21 gives exactly same solution for the mean (all uses exact diagonal R)
+!   ==> 10, 11, 21 gives exactly same solution for the mean (all uses exact diagonal R) Note we are now using R=EE
 !   ==> 12, 13, 22, 23 gives exactly same solution for the mean (all uses ensemble R)
 !   ==> 10, 11, gives exactly same variance (different solvers with exact R=I)
 !   ==> 12, 13 gives exactly same variance (subspace solvers with ensemble R)
@@ -34,14 +34,14 @@ program main
 
 
 ! Model for measurements and errors
-   integer, parameter :: nrobs=50                  ! Number of measurements
+   integer, parameter :: nrobs=50                 ! Number of measurements
    real               :: obsvar=0.25               ! Measurement variance
-   character(len=8  ) :: covmodel='gaussian'       ! diagonal or gaussian
+   character(len=8  ) :: covmodel='diagonal'       ! diagonal or gaussian
    real               :: rd=40.0                   ! Horizontal correlation of observation errors in Gaussian case
-   integer, parameter :: ne=10                     ! scaling size of E used in the analysis scheme R=EE'
+   integer, parameter :: ne=50                     ! scaling size of E used in the analysis scheme R=EE'
 
 ! Model ensemble
-   integer, parameter :: nrens=1000                 ! ensemble size
+   integer, parameter :: nrens=100                 ! ensemble size
    real               :: const=4.0                 ! mean of analytical solution
    real               :: rh=40.0                   ! Horizontal correlation of model fields
    real               :: dx=1.0                    ! horizontal grid spacing
@@ -49,7 +49,7 @@ program main
 
 ! Options
    logical            :: lsymsqrt=.true.           ! Always use Sakovs symmetrical square root rather than one-sided
-   logical            :: lrandrot=.false.           ! Introduce a mean-preserving random rotation in SQRT schemes
+   logical            :: lrandrot=.false.          ! Introduce a mean-preserving random rotation in SQRT schemes
    real               :: truncation=0.99           ! SVD truncation in inversion
 
 ! Inflation
@@ -68,6 +68,7 @@ program main
    character(len=12) :: cc(1:nc)  =(/ 'truth       ','prior       ','prior       ',&
                                      &'10          ','11          ','12          ','13          ',&
                                      &'21          ','22          ','23          ','00          '/)
+   integer :: experiments(1:nc-3)   =(/10,11,12,13,21,22,23,00/)
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -144,27 +145,8 @@ program main
    print '(a)','main: ensemble ok'
    print *
 
-! Stochastic EnKF (10,11,12,13)
-   do i=0,3
-      mode_analysis=10+i
-      ic=ic+1
-      print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-      print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
-      mem=mem0
-      E=E0
-      call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
-               &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
-               &inflate,infmult,local,robs,obstreshold,E,ne)
-      call ensmean(mem,ave(1,ic),nx,nrens)
-      call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
-      call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
-
-
-   enddo
-
-! SQRT EnKF (21,22,23)
-   do i=1,3
-      mode_analysis=20+i
+   do i=1,nc-3
+      mode_analysis=experiments(i)
       ic=ic+1
       print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
       print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
@@ -177,21 +159,6 @@ program main
       call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
       call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
    enddo
-
-   mode_analysis=0
-   ic=ic+1
-   print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-   print '(a,i2,a,i2,tr2,a)','main: calling enkf with mode_analysis=',mode_analysis,' ic=',ic,cc(ic)
-   mem=mem0
-   E=E0
-   call enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,&
-            &truncation,covmodel,dx,rh,rd,lrandrot,lsymsqrt,&
-            &inflate,infmult,local,robs,obstreshold,E,ne)
-   call ensmean(mem,ave(1,ic),nx,nrens)
-   call ensvar(mem,ave(1,ic),var(1,ic),nx,nrens)
-   call dumpensemble(mem,ave,var,nrens,nx,ic,cc,nc)
-   print '(a)','++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Dumping the solutions in tecplot format

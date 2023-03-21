@@ -25,10 +25,12 @@ m_ensmean	m_ensmean.F90	/^module m_ensmean$/;"	m
 m_ensvar	m_ensvar.F90	/^module m_ensvar$/;"	m
 m_mean_preserving_rotation	m_mean_preserving_rotation.F90	/^module m_mean_preserving_rotation$/;"	m
 m_multa	m_multa.F90	/^module m_multa$/;"	m
+m_random2	m_random2.F90	/^module m_random2$/;"	m
 m_randrot	m_randrot.F90	/^module m_randrot$/;"	m
 meanX5	mod_anafunc.F90	/^subroutine meanX5(/;"	s	module:mod_anafunc
 mean_preserving_rotation	m_mean_preserving_rotation.F90	/^subroutine mean_preserving_rotation(/;"	s	module:m_mean_preserving_rotation
 mod_anafunc	mod_anafunc.F90	/^module mod_anafunc$/;"	m
 multa	m_multa.F90	/^subroutine multa(/;"	s	module:m_multa
+random2	m_random2.F90	/^subroutine random2(/;"	s	module:m_random2
 randrot	m_randrot.F90	/^subroutine randrot(/;"	s	module:m_randrot
 svdS	mod_anafunc.F90	/^subroutine svdS(/;"	s	module:mod_anafunc

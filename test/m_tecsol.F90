@@ -9,8 +9,10 @@ subroutine tecsol(ave,var,obs,obspos,nx,nrobs,nc)
    real,    intent(in)   :: var(nx,nc)
    integer, intent(in)   :: obspos(nrobs)
    real,    intent(in)   :: obs(nrobs)
+   real std(nx,nc)
    integer ic,i
 
+   std=sqrt(var)
    print '(a)','Dumping solutions to solutions.dat'
    open(10,file='solutions.dat')
    write(10,*)'TITLE = "Solutions"'
@@ -24,7 +26,7 @@ subroutine tecsol(ave,var,obs,obspos,nx,nrobs,nc)
    write(10,'(a,i5,a,i5,a)')' ZONE T="Std Dev"  F=BLOCK, I=',nx,', J=1, K=1'
    write(10,'(20I5)')(i         ,i=1,nx)
    do ic=1,nc
-      write(10,'(20g13.5)')(var(i,ic) ,i=1,nx)
+      write(10,'(20g13.5)')(std(i,ic) ,i=1,nx)
    enddo
 
    write(10,'(a,i5,a,i5,a)')' ZONE T="observations"  F=BLOCK, I=',nrobs,', J=1, K=1'

@@ -19,6 +19,7 @@ m_enkf.o:      m_getD.o
 m_enkf.o:      m_obspert.o
 m_enkf.o:      MODEL.CPP
 m_enkf.o:      m_preexact.o
+m_enkf.o:      m_wtime.o
 m_ensmean.o:      makefile
 m_ensmean.o:      MODEL.CPP
 m_ensvar.o:      makefile
@@ -44,3 +45,5 @@ m_residuals.o:      makefile
 m_residuals.o:      MODEL.CPP
 m_tecsol.o:      makefile
 m_tecsol.o:      MODEL.CPP
+m_wtime.o:      makefile
+m_wtime.o:      MODEL.CPP

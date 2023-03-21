@@ -7,6 +7,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    use m_getD
    use m_obspert
    use m_preexact
+   use m_wtime
    implicit none
    integer, intent(in) :: nx
    integer, intent(in) :: nrens
@@ -37,6 +38,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
    real,    intent(inout) :: E(nrobs,nrens*ne)
    integer iprt
+   character(len=2) tag2
 
    real, allocatable :: D0(:,:)
    real, allocatable :: S0(:,:)
@@ -65,7 +67,6 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
    real, allocatable, dimension(:,:) :: subS,subE,subD, subR
    real, allocatable, dimension(:,:)   :: submem
    real, allocatable :: subinnovation(:)
-   real :: start, finish
 ! End Local analysis variables
 
 
@@ -118,13 +119,6 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
             R(m,m)=obsvar
          enddo
       case ('gaussian')
-!         do i=1,nrobs
-!         do j=1,nrobs
-!            dist=abs(obspos(i)-obspos(j))
-!            if (dist > real(nx)/2.0) dist = real(nx) - dist
-!            R(i,j)=obsvar*exp(-dist**2/rd**2)
-!         enddo
-!         enddo
          allocate(ES(nrobs,10000))
          print '(a)','main: sampling measurement pert into ES(nrobs,10000)'
          call obspert(ES,10000,nrobs,.true.,dx,rd,covmodel,obspos)
@@ -166,7 +160,7 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
    if (local==0) then
       if (mode_analysis==0) then
-         call cpu_time(start)
+         call cputimeA('       CPU start analysis 00')
          print '(a,i2)','       enkf: Running mode_analysis=0 case: ',mode_analysis
          nre=nrens*ne
          nrmin=min(nrobs,nre)
@@ -178,16 +172,24 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
 
          mode_analysis=10
          print '(a,i2)','       enkf: calling global analysis with mode: ',mode_analysis
-         call analysis(mem, R, E, S0, D0, innovation, nx, nrens, nrmin, .true., truncation, mode_analysis, &
+         call analysis(mem, R, E, S0, D0, innovation, nx, nrens, nrmin, .false., truncation, mode_analysis, &
                          lrandrot, lupdate_randrot, lsymsqrt, inflate, infmult, ne)
          deallocate(S0,D0)
+         call cputimeB('       CPU finishd analysis 00')
 
       else
          print '(a,i2)','       enkf: calling global analysis with mode: ',mode_analysis
-         call cpu_time(start)
-         call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .true., truncation, mode_analysis, &
+         write(tag2,'(I2.2)')mode_analysis
+         call cputimeA('       CPU start analysis '//tag2)
+         call analysis(mem, R, E, S, D, innovation, nx, nrens, nrobs, .false., truncation, mode_analysis, &
                          lrandrot, lupdate_randrot, lsymsqrt, inflate, infmult, ne)
+         call cputimeB('       CPU analysis '//tag2)
       endif
+
+
+
+
+
 
    else
       print '(a,i2)','       enkf: calling local analysis with mode: ',mode_analysis,local
@@ -282,8 +284,6 @@ subroutine enkf(mem,nx,nrens,obs,obsvar,obspos,nrobs,mode_analysis,truncation,co
          endif
       enddo
    endif
-   call cpu_time(finish)
-   print '("   analysis: time = ",f6.3," seconds.")',finish-start
    print '(a)','       enkf: done'
 
 
