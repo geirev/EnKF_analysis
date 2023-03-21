@@ -10,5 +10,6 @@ F90SOURCE = \
 	mod_dimensions.F90\
 	m_preexact.F90\
 	m_residuals.F90\
-	m_tecsol.F90
+	m_tecsol.F90\
+	m_wtime.F90
 

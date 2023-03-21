@@ -555,9 +555,9 @@ end subroutine
 subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
 !        Exact inversion with diagonal R using: S' ( SS' + I )^{-1} == (S'S + I)^(-1) S'
 !        Analysis becomes
-!         mema=memf(I + (SS'+I)^{-1} S'D)
+!         mema = memf (I + (SS'+I)^{-1} D)
 !              = memf (I + (S'S + I)^{-1} S' D)
-!              = memf (I + Z L^{-1} Z' S' D)
+!              = memf (I + Z L^{-1} Z') S' D)
 !        In this formula S and D are both normalized by sqrt(N-1)
 !        The eigen value decomposition is of dimension N (rather than m)
    integer, intent(in)   :: nrens
@@ -570,6 +570,9 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
    real, allocatable :: Z(:,:)
    real n1
    integer i,j
+   real sigacc,sigsum
+   integer nrsigma,m
+
 
    allocate(SS(nrens,nrens))
    allocate(SD(nrens,nrens))
@@ -591,14 +594,35 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
    ! eigenvalue decomp of SS
    call eigC(SS,nrens,Z,eig)
 
+   sigsum=sum(eig)
+   sigacc=0.0
+   do m=nrens,1,-1
+      sigacc=sigacc+eig(m)
+      if (sigacc/sigsum < 0.9999) then
+         eig(m)=1.0/eig(m)
+      else
+         eig(m)=0.0
+      endif
+   enddo
+
+   nrsigma=nrens
+   do m=nrens,1,-1
+      if (eig(m)==0.0) then
+         print '(tr7,a,i0)','Number of eigen values: ',nrens-m+1
+         nrsigma=nrens-m+1
+         exit
+      endif
+   enddo
+   if (nrsigma /= nrens) then
+      print '(a,2i5)','WARNING: truncation applied in mod_anafunc..exact_diag_inversion',nrsigma,nrens
+   endif
+
    ! ZSD=Z'*SD
    call dgemm('t','n',nrens,nrens,nrens,1.0,Z,nrens,SD,nrens,0.0,ZSD,nrens)
 
    ! ZSD=eig^{-1} ZSD
    do j=1,nrens
-   do i=1,nrens
-      ZSD(i,j)=(1.0/eig(i))*ZSD(i,j)
-   enddo
+      ZSD(:,j)=eig(:)*ZSD(:,j)
    enddo
 
    ! X5=Z * (eig^{-1} ZSD)
