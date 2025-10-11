@@ -568,7 +568,7 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
    real, allocatable :: SS(:,:),SD(:,:),ZSD(:,:)
    real, allocatable :: eig(:)
    real, allocatable :: Z(:,:)
-   real n1
+   real n1,n2
    integer i,j
    real sigacc,sigsum
    integer nrsigma,m
@@ -588,8 +588,9 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
       SS(i,i)=SS(i,i)+1.0
    enddo
 
-   ! SD=S'*D with S and D scaled by sqrt(N-1)
-   call dgemm('t','n',nrens,nrens,nrobs,n1,S,nrobs,D,nrobs,0.0,SD,nrens)
+   ! SD=S'*D with S scaled by sqrt(N-1)
+   n2=sqrt(n1)
+   call dgemm('t','n',nrens,nrens,nrobs,n2,S,nrobs,D,nrobs,0.0,SD,nrens)
 
    ! eigenvalue decomp of SS
    call eigC(SS,nrens,Z,eig)
@@ -598,7 +599,7 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
    sigacc=0.0
    do m=nrens,1,-1
       sigacc=sigacc+eig(m)
-      if (sigacc/sigsum < 0.9999) then
+      if (sigacc/sigsum < 0.99999) then
          eig(m)=1.0/eig(m)
       else
          eig(m)=0.0
@@ -607,8 +608,8 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
 
    nrsigma=nrens
    do m=nrens,1,-1
-      if (eig(m)==0.0) then
-         print '(tr7,a,i0)','Number of eigen values: ',nrens-m+1
+      if (eig(m)==0.0 .and. m /= 1) then
+!         print '(tr7,a,i0)','Number of eigen values: ',nrens-m+1
          nrsigma=nrens-m+1
          exit
       endif
@@ -628,9 +629,10 @@ subroutine exact_diag_inversion(S,D,X5,nrens,nrobs)
    ! X5=Z * (eig^{-1} ZSD)
    call dgemm('n','n',nrens,nrens,nrens,1.0,Z,nrens,ZSD,nrens,0.0,X5,nrens)
 
-   do i=1,nrens
-      X5(i,i)=X5(i,i)+1.0
-   enddo
+!   do i=1,nrens
+!      X5(i,i)=X5(i,i)+1.0
+!   enddo
+
    deallocate(eig)
    deallocate(Z)
    deallocate(SS)

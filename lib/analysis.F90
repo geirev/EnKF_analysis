@@ -68,7 +68,19 @@ subroutine analysis(A, R, E, S, D, innov, ndim, nrens, nrobs, verbose, truncatio
    else
       select case (mode)
       case(10)
+!         print '(a)','analysis S: '
+!         print '(10f13.4)',S(1:10,1:10)
+!         print '(a)','analysis D: '
+!         print '(10f13.4)',D(1:10,1:10)
          call exact_diag_inversion(S,D,X5,nrens,nrobs)
+!         print '(a)','analysis X5 from exact_diag_inversion '
+!         print '(10f13.4)',X5(1:10,1:10)
+         X5=X5/sqrt(real(nrens-1))
+         do i=1,nrens
+            X5(i,i)=x5(i,i)+1.0
+         enddo
+!         print '(a)','final analysis X5'
+!         print '(10f13.4)',X5(1:10,1:10)
 
       case(11,21)
          nrmin=nrobs

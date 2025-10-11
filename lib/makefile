@@ -10,7 +10,10 @@ LD = gfortran
 CF90 = gfortran
 CF77 = gfortran
 
-FFLAGS = -c -g -fdefault-real-8 -C -u -Xlist -O2 -std=gnu -fimplicit-none -frange-check -fmax-errors=10 -pedantic -pedantic-errors -Waliasing -Wampersand -Wcharacter-truncation -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow -ffpe-trap=invalid,zero,overflow -Wunused -Werror -O3
+FFLAGS = -c -g -fdefault-real-8 -C -u -Xlist -O2 -std=gnu -fimplicit-none -frange-check -fmax-errors=10 -pedantic -pedantic-errors\
+          -Waliasing -Wampersand -Wcharacter-truncation -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow -ffpe-trap=invalid,zero,overflow -Wunused -Werror -O3
+FFLAGS = -c -g -fdefault-real-8 -C -u -Xlist -O2 -std=gnu -fimplicit-none -frange-check -fmax-errors=10 -pedantic -pedantic-errors\
+          -Waliasing -Wampersand -Wcharacter-truncation -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow  -Wunused -Werror -O2
 
 F77FLG =
 F90FLG =
